@@ -1,6 +1,28 @@
-*__pycache__*
-*.vscode*
-*scratch*
-references*
+# macOS artifacts
+.DS_Store
+.DS_Store**
+
+# Python artifacts
+**/__pycache__/
+**/*.pyc
+**build/**
+.venv/
+.vscode/
+
+*.py[cod]
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+
+# IDE settings
+.vscode/
+
+# Temporary & debug files
+scratch/
+scratch/**
 debug*
-*.venv*
+
+# Reference outputs
+references*
