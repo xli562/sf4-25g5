@@ -2,10 +2,11 @@
 
 Dont Worry about appearance until ALL functionalities are finished. Appearance (tickmarks, etc. included) should be dealt last. Give 2 days for this.
 
-Useful: [pyside6-plotting](https://www.pythonguis.com/tutorials/pyside6-plotting-pyqtgraph/)
+PySide6 quick guides:
 
-1. Make MultButton to swich between e.g. channel 1, 2
-1. Have a look at functions of toolbutton, probably make DropdownMenu class
+- [plotting](https://www.pythonguis.com/tutorials/pyside6-plotting-pyqtgraph/)
+- [combobox](https://www.pythonguis.com/docs/qcombobox/)
+
 1. Make slider stick to specific values, make textlabel follow those values
 1. Make dummy math channels, show channel colors on legend. Channel 1 & 2 should always have the same colors as Keysight scope, math channels should have a fixed color sequence. 3 math channels at most.
 1. Make sure user cannot drag / zoom graph.

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <customwidgets>
-  <customwidget>
-   <class>MultButton</class>
-   <extends>QPushButton</extends>
-   <header>multbutton</header>
-  </customwidget>
- </customwidgets>
  <class>ctrl</class>
  <widget class="QWidget" name="ctrl">
   <property name="geometry">
@@ -29,7 +22,7 @@
   <property name="locale">
    <locale language="English" country="UnitedKingdom"/>
   </property>
-  <widget class="MultButton" name="pushButton">
+  <widget class="QPushButton" name="auto_scale_btn">
    <property name="geometry">
     <rect>
      <x>100</x>
@@ -42,7 +35,7 @@
     <string>Auto scale</string>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_2">
+  <widget class="QPushButton" name="default_btn">
    <property name="geometry">
     <rect>
      <x>280</x>
@@ -78,11 +71,18 @@ setup</string>
      <height>21</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <family>Cambria</family>
+     <pointsize>12</pointsize>
+     <kerning>true</kerning>
+    </font>
+   </property>
    <property name="text">
     <string>timescale</string>
    </property>
   </widget>
-  <widget class="QSlider" name="horizontalSlider">
+  <widget class="QSlider" name="hscale_sld">
    <property name="geometry">
     <rect>
      <x>30</x>
@@ -90,6 +90,9 @@ setup</string>
      <width>301</width>
      <height>20</height>
     </rect>
+   </property>
+   <property name="maximum">
+    <number>359</number>
    </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
@@ -108,7 +111,7 @@ setup</string>
     <string>offset</string>
    </property>
   </widget>
-  <widget class="QSlider" name="horizontalSlider_2">
+  <widget class="QSlider" name="hoffset_sld">
    <property name="geometry">
     <rect>
      <x>30</x>
@@ -117,24 +120,14 @@ setup</string>
      <height>20</height>
     </rect>
    </property>
+   <property name="maximum">
+    <number>359</number>
+   </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
    </property>
   </widget>
-  <widget class="QToolButton" name="toolButton">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>100</y>
-     <width>91</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>acquire v</string>
-   </property>
-  </widget>
-  <widget class="MultButton" name="pushButton_3">
+  <widget class="QPushButton" name="h_offset_zero_btn">
    <property name="geometry">
     <rect>
      <x>80</x>
@@ -160,7 +153,7 @@ setup</string>
     <string>[] Vertical</string>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_4">
+  <widget class="MultButton" name="v_src_mbtn">
    <property name="geometry">
     <rect>
      <x>90</x>
@@ -186,7 +179,7 @@ setup</string>
     <string>voltage scale</string>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_5">
+  <widget class="QPushButton" name="v_offset_zero_btn">
    <property name="geometry">
     <rect>
      <x>80</x>
@@ -199,7 +192,7 @@ setup</string>
     <string>zero</string>
    </property>
   </widget>
-  <widget class="QSlider" name="horizontalSlider_3">
+  <widget class="QSlider" name="voffset_sld">
    <property name="geometry">
     <rect>
      <x>30</x>
@@ -208,11 +201,14 @@ setup</string>
      <height>20</height>
     </rect>
    </property>
+   <property name="maximum">
+    <number>359</number>
+   </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
    </property>
   </widget>
-  <widget class="QSlider" name="horizontalSlider_4">
+  <widget class="DiscreteSlider" name="vscale_sld">
    <property name="geometry">
     <rect>
      <x>30</x>
@@ -220,6 +216,9 @@ setup</string>
      <width>301</width>
      <height>20</height>
     </rect>
+   </property>
+   <property name="maximum">
+    <number>359</number>
    </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
@@ -238,7 +237,7 @@ setup</string>
     <string>offset</string>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_6">
+  <widget class="MultButton" name="v_coupling_mbtn">
    <property name="geometry">
     <rect>
      <x>140</x>
@@ -290,7 +289,7 @@ setup</string>
     <string>type</string>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_8">
+  <widget class="QPushButton" name="trig_type_none_btn">
    <property name="geometry">
     <rect>
      <x>140</x>
@@ -303,7 +302,7 @@ setup</string>
     <string>none</string>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_9">
+  <widget class="QPushButton" name="trig_type_rise_btn">
    <property name="geometry">
     <rect>
      <x>210</x>
@@ -316,7 +315,7 @@ setup</string>
     <string>_↗</string>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_10">
+  <widget class="QPushButton" name="trig_type_fall_btn">
    <property name="geometry">
     <rect>
      <x>250</x>
@@ -329,7 +328,7 @@ setup</string>
     <string>↘_</string>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_11">
+  <widget class="QPushButton" name="trig_type_risefall_btn">
    <property name="geometry">
     <rect>
      <x>290</x>
@@ -342,7 +341,7 @@ setup</string>
     <string>_↗ / ↘_</string>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_12">
+  <widget class="QPushButton" name="trig_type_sing_btn">
    <property name="geometry">
     <rect>
      <x>70</x>
@@ -368,7 +367,7 @@ setup</string>
     <string>threshold</string>
    </property>
   </widget>
-  <widget class="QSlider" name="horizontalSlider_5">
+  <widget class="QSlider" name="trig_threshold_sld">
    <property name="geometry">
     <rect>
      <x>30</x>
@@ -377,11 +376,14 @@ setup</string>
      <height>20</height>
     </rect>
    </property>
+   <property name="maximum">
+    <number>359</number>
+   </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
    </property>
   </widget>
-  <widget class="QDoubleSpinBox" name="doubleSpinBox">
+  <widget class="QDoubleSpinBox" name="trig_threshold_sbox">
    <property name="geometry">
     <rect>
      <x>110</x>
@@ -423,11 +425,14 @@ setup</string>
      <height>20</height>
     </rect>
    </property>
+   <property name="maximum">
+    <number>359</number>
+   </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_13">
+  <widget class="MultButton" name="fft_src_mbtn">
    <property name="geometry">
     <rect>
      <x>110</x>
@@ -440,7 +445,7 @@ setup</string>
     <string>Chn. 1</string>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_14">
+  <widget class="MultButton" name="fft_vscale_mbtn">
    <property name="geometry">
     <rect>
      <x>30</x>
@@ -453,7 +458,7 @@ setup</string>
     <string>Vrms</string>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_15">
+  <widget class="QPushButton" name="fft_addch_btn">
    <property name="geometry">
     <rect>
      <x>70</x>
@@ -479,20 +484,7 @@ setup</string>
     <string>FFT</string>
    </property>
   </widget>
-  <widget class="QToolButton" name="toolButton_2">
-   <property name="geometry">
-    <rect>
-     <x>100</x>
-     <y>420</y>
-     <width>121</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Hamming v</string>
-   </property>
-  </widget>
-  <widget class="QSpinBox" name="spinBox">
+  <widget class="QSpinBox" name="fft_span_sbox">
    <property name="geometry">
     <rect>
      <x>230</x>
@@ -528,7 +520,7 @@ setup</string>
     <string>centre</string>
    </property>
   </widget>
-  <widget class="QSpinBox" name="spinBox_2">
+  <widget class="QSpinBox" name="fft_ctr_sbox">
    <property name="geometry">
     <rect>
      <x>290</x>
@@ -551,7 +543,7 @@ setup</string>
     <string>arithmetic</string>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_16">
+  <widget class="QPushButton" name="arith_addch_btn">
    <property name="geometry">
     <rect>
      <x>110</x>
@@ -564,7 +556,7 @@ setup</string>
     <string>+</string>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_17">
+  <widget class="MultButton" name="arith_src1_mbtn">
    <property name="geometry">
     <rect>
      <x>30</x>
@@ -577,7 +569,7 @@ setup</string>
     <string>Chn. 1</string>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_18">
+  <widget class="MultButton" name="arith_op_mbtn">
    <property name="geometry">
     <rect>
      <x>100</x>
@@ -590,7 +582,7 @@ setup</string>
     <string>+</string>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_19">
+  <widget class="MultButton" name="arith_src2_mbtn">
    <property name="geometry">
     <rect>
      <x>140</x>
@@ -655,20 +647,7 @@ setup</string>
     <string>[] Measure</string>
    </property>
   </widget>
-  <widget class="QToolButton" name="toolButton_3">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>65</y>
-     <width>81</width>
-     <height>30</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>source v</string>
-   </property>
-  </widget>
-  <widget class="MultButton" name="pushButton_20">
+  <widget class="MultButton" name="trig_src_mbtn">
    <property name="geometry">
     <rect>
      <x>90</x>
@@ -681,20 +660,7 @@ setup</string>
     <string>Chn. 1</string>
    </property>
   </widget>
-  <widget class="QToolButton" name="toolButton_4">
-   <property name="geometry">
-    <rect>
-     <x>110</x>
-     <y>65</y>
-     <width>71</width>
-     <height>30</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>type v</string>
-   </property>
-  </widget>
-  <widget class="MultButton" name="pushButton_7">
+  <widget class="MultButton" name="run_stop_mbtn">
    <property name="geometry">
     <rect>
      <x>1</x>
@@ -707,7 +673,7 @@ setup</string>
     <string>Run / Stop</string>
    </property>
   </widget>
-  <widget class="MultButton" name="pushButton_21">
+  <widget class="QPushButton" name="save_btn">
    <property name="geometry">
     <rect>
      <x>200</x>
@@ -720,7 +686,89 @@ setup</string>
     <string>Save...</string>
    </property>
   </widget>
+  <widget class="QComboBox" name="h_acq_cbox">
+   <property name="geometry">
+    <rect>
+     <x>120</x>
+     <y>100</y>
+     <width>90</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="placeholderText">
+    <string>acquire</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="measure_src_cbox">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>65</y>
+     <width>80</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="currentText">
+    <string/>
+   </property>
+   <property name="placeholderText">
+    <string>source</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="measure_type_cbox">
+   <property name="geometry">
+    <rect>
+     <x>110</x>
+     <y>65</y>
+     <width>70</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="placeholderText">
+    <string>type</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="fft_window_cbox">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>420</y>
+     <width>120</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="placeholderText">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="measure_add_btn">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>40</y>
+     <width>31</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>+</string>
+   </property>
+  </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MultButton</class>
+   <extends>QPushButton</extends>
+   <header>multbutton</header>
+  </customwidget>
+ </customwidgets>
+ <customwidgets>
+  <customwidget>
+   <class>DiscreteSlider</class>
+   <extends>QSlider</extends>
+   <header>discreteslider</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

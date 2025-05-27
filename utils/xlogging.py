@@ -2,6 +2,7 @@ import logging
 import sys
 import inspect
 import colorama
+from colorama import Fore, Back, Style
 
 colorama.init(autoreset=True)
 
@@ -98,3 +99,4 @@ def set_logging_level(level_str: str):
     for handler in root_logger.handlers:
         handler.setLevel(new_level)
     root_logger.debug(f"Logging level set to {level_str.upper()}")
+

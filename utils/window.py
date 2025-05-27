@@ -1,7 +1,7 @@
-from PySide6.QtWidgets import QWidget
+from PySide6.QtWidgets import QWidget, QComboBox
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QTimer
-from utils.components import MultButton
+from utils.components import MultButton, DiscreteSlider
 import pyqtgraph as pg
 import numpy as np
 
@@ -12,8 +12,11 @@ class BaseWidget(QWidget):
         self.setParent(parent)
 
     def init_ui(self):
+        """ Loads ui from .ui file """
+
         loader = QUiLoader()
         loader.registerCustomWidget(MultButton)
+        loader.registerCustomWidget(DiscreteSlider)
         file = QFile(f'./ui/{self.name}.ui')
         file.open(QFile.ReadOnly)
         self.ui = loader.load(file, self)
@@ -25,8 +28,39 @@ class ControlPane(BaseWidget):
         self.init_ui()
     
     def init_ui(self):
+        """ Loads ui, initialises components """
+
         super().init_ui()
-        print()
+        self.init_mbtns()
+        self.init_cboxes()
+        self.init_dslds()
+
+    def init_mbtns(self):
+        """ Inits the MultButtons """
+
+        # TODO: cover all mbtns
+        self.ui.run_stop_mbtn.set_states([
+                {'index'     : 0,
+                 'state_name': 'run',
+                 'stylesheet': 'background-color: green;',
+                 'text'      : self.ui.run_stop_mbtn.text()},
+                {'index'     : 1,
+                 'state_name': 'stop',
+                 'stylesheet': 'background-color: red;',
+                 'text'      : self.ui.run_stop_mbtn.text()}])
+        self.ui.run_stop_mbtn.set_state(0)
+
+    def init_cboxes(self):
+        """ Inits the QComboBoxes """
+
+        # TODO: cover all cboxes
+        self.ui.fft_window_cbox.addItems(['Hamming', 'Hann', 'Rect'])   # Optional add-on: Blackman, Flattop
+
+    def init_dslds(self):
+        """ Inits the DiscreteSliders """
+
+        self.ui.vscale_sld.set_levels([0.5, 1, 5])
+
 
 class WaveCanvas(pg.PlotWidget):
     def __init__(self, parent=None):
@@ -55,8 +89,6 @@ class WaveCanvas(pg.PlotWidget):
         self.ys.append(np.sin(self.xs[-1]/10))
         self.ch1_line.setData(self.xs, self.ys)
         
-
-
 class MainWindow(BaseWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
