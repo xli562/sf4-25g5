@@ -28,7 +28,7 @@
      <x>10</x>
      <y>40</y>
      <width>890</width>
-     <height>670</height>
+     <height>611</height>
     </rect>
    </property>
   </widget>
@@ -49,6 +49,16 @@
    </property>
    <property name="locale">
     <locale language="English" country="UnitedKingdom"/>
+   </property>
+  </widget>
+  <widget class="QWidget" name="stat_bar_container" native="true">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>660</y>
+     <width>892</width>
+     <height>52</height>
+    </rect>
    </property>
   </widget>
   <widget class="QLabel" name="label">

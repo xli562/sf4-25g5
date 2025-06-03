@@ -82,7 +82,7 @@ setup</string>
     <string>timescale</string>
    </property>
   </widget>
-  <widget class="QSlider" name="hscale_sld">
+  <widget class="DiscreteSlider" name="hscale_dsld">
    <property name="geometry">
     <rect>
      <x>30</x>
@@ -208,7 +208,7 @@ setup</string>
     <enum>Qt::Horizontal</enum>
    </property>
   </widget>
-  <widget class="DiscreteSlider" name="vscale_sld">
+  <widget class="DiscreteSlider" name="vscale_dsld">
    <property name="geometry">
     <rect>
      <x>30</x>
@@ -416,7 +416,7 @@ setup</string>
     <string>pre-trigger</string>
    </property>
   </widget>
-  <widget class="QSlider" name="horizontalSlider_6">
+  <widget class="DiscreteSlider" name="trig_pretrg_dsld">
    <property name="geometry">
     <rect>
      <x>30</x>
@@ -595,23 +595,26 @@ setup</string>
     <string>Chn. 1</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_18">
+  <widget class="DynamicLabel" name="hscale_dlbl">
    <property name="geometry">
     <rect>
-     <x>110</x>
+     <x>130</x>
      <y>130</y>
-     <width>81</width>
+     <width>111</width>
      <height>21</height>
     </rect>
    </property>
    <property name="text">
-    <string>1 ms / div</string>
+    <string>5 ms / div</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
-  <widget class="QLabel" name="label_19">
+  <widget class="DynamicLabel" name="vscale_dlbl">
    <property name="geometry">
     <rect>
-     <x>140</x>
+     <x>130</x>
      <y>260</y>
      <width>111</width>
      <height>21</height>
@@ -619,6 +622,9 @@ setup</string>
    </property>
    <property name="text">
     <string>500 mV / div</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="label_20">
@@ -757,18 +763,59 @@ setup</string>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>MultButton</class>
-   <extends>QPushButton</extends>
-   <header>multbutton</header>
-  </customwidget>
- </customwidgets>
- <customwidgets>
-  <customwidget>
    <class>DiscreteSlider</class>
    <extends>QSlider</extends>
    <header>discreteslider</header>
   </customwidget>
+  <customwidget>
+   <class>MultButton</class>
+   <extends>QPushButton</extends>
+   <header>multbutton</header>
+  </customwidget>
+  <customwidget>
+   <class>DynamicLabel</class>
+   <extends>QLabel</extends>
+   <header>dynamiclabel</header>
+  </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>run_stop_mbtn</tabstop>
+  <tabstop>auto_scale_btn</tabstop>
+  <tabstop>save_btn</tabstop>
+  <tabstop>default_btn</tabstop>
+  <tabstop>measure_src_cbox</tabstop>
+  <tabstop>measure_type_cbox</tabstop>
+  <tabstop>measure_add_btn</tabstop>
+  <tabstop>h_acq_cbox</tabstop>
+  <tabstop>hscale_dsld</tabstop>
+  <tabstop>hoffset_sld</tabstop>
+  <tabstop>h_offset_zero_btn</tabstop>
+  <tabstop>v_src_mbtn</tabstop>
+  <tabstop>vscale_dsld</tabstop>
+  <tabstop>voffset_sld</tabstop>
+  <tabstop>v_offset_zero_btn</tabstop>
+  <tabstop>v_coupling_mbtn</tabstop>
+  <tabstop>fft_src_mbtn</tabstop>
+  <tabstop>fft_vscale_mbtn</tabstop>
+  <tabstop>fft_window_cbox</tabstop>
+  <tabstop>fft_span_sbox</tabstop>
+  <tabstop>fft_ctr_sbox</tabstop>
+  <tabstop>fft_addch_btn</tabstop>
+  <tabstop>arith_src1_mbtn</tabstop>
+  <tabstop>arith_op_mbtn</tabstop>
+  <tabstop>arith_src2_mbtn</tabstop>
+  <tabstop>arith_addch_btn</tabstop>
+  <tabstop>trig_type_sing_btn</tabstop>
+  <tabstop>trig_type_none_btn</tabstop>
+  <tabstop>trig_type_rise_btn</tabstop>
+  <tabstop>trig_type_fall_btn</tabstop>
+  <tabstop>trig_type_risefall_btn</tabstop>
+  <tabstop>trig_src_mbtn</tabstop>
+  <tabstop>trig_threshold_sld</tabstop>
+  <tabstop>trig_threshold_sbox</tabstop>
+  <tabstop>trig_pretrg_dsld</tabstop>
+  <tabstop>doubleSpinBox_2</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

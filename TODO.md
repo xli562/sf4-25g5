@@ -7,14 +7,15 @@ PySide6 quick guides:
 - [plotting](https://www.pythonguis.com/tutorials/pyside6-plotting-pyqtgraph/)
 - [combobox](https://www.pythonguis.com/docs/qcombobox/)
 
-1. Make slider stick to specific values, make textlabel follow those values
-1. Make dummy math channels, show channel colors on legend. Channel 1 & 2 should always have the same colors as Keysight scope, math channels should have a fixed color sequence. 3 math channels at most.
-1. Make sure user cannot drag / zoom graph.
+1. Connect channels to canvas, feed fake datastream to channel.
+1. Channel 1 & 2 should always have the same colors as Keysight scope, math channels should have a fixed color sequence. (London tube colors?)
 1. Add measurement region below wave_pane, 4 measurements at most, absolutely NO scrolling. Click mouse midkey to delete measurement.
 1. (optional) Make measurement cursor for (x,y) readout
+1. (optional) If GUI too slow, replace some lists with np.array
 
 ## Feature specification
 
+- 3 math channels at most, cannot do math channel of a math channel of a math channel (count this `math_level` when creating a channel from another channel, forbid if `math_level > 1`. Channel 1 & 2 have math_level = 0.)
 - Input gain selection (e.g. 500mVpp)
 - Bode
 - FFT
