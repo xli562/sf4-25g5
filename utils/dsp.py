@@ -1,6 +1,7 @@
 from PySide6.QtCore import Signal, QObject
 from PySide6.QtWidgets import QWidget
 import numpy as np
+from collections import deque
 from utils.xlogging import get_logger
 
 
@@ -25,7 +26,7 @@ class Channel(QObject):
         self.is_active = True
         self.trig_mode = self.NONE
         self.trig_threshold = 0.0
-        self.pretrig = 0.5
+        self.pretrig = 0.3
         self._len = 500
         self.frame_buffer = np.zeros((2, self._len))
         # frame buffer pointer points to the earliest filled
@@ -34,6 +35,9 @@ class Channel(QObject):
         # buffer empty: self.frame_buffer_ptr = self.len
         # buffer full : self.frame_buffer_ptr = 0
         self.frame_buffer_ptr = self._len
+
+        self._post_len   = self._len - int(self._len * self.pretrig)
+        self._lookahead  = deque(maxlen=self._len + self._post_len)
 
     def __str__(self):
         retstr  = 'Channel:'
@@ -47,20 +51,28 @@ class Channel(QObject):
     def set_length(self, new_len):
         self._len = new_len
         self.frame_buffer = np.array([np.zeros(self._len), np.zeros(self._len)])
-        self.frame_buffer_ptr = self._len   
+        self.frame_buffer_ptr = self._len
+    
+    def set_pretrig(self, new_pretrig):
+        self.pretrig = new_pretrig
+        self._post_len   = self._len - int(self._len * self.pretrig)
+        self._lookahead  = deque(maxlen=self._len + self._post_len)
+
+    def set_threshold(self, new_threshold):
+        self.trig_threshold = new_threshold
     
     def init_source(self, src:Signal):
         """ Connects serial input signal to channel """
         self.source = src
         self.source.connect(lambda val: self.stream_in(val))
     
-    def rotate_frame_buf(self):
-        self.frame_buffer[0] = self.frame_buffer[1]
+    def _rotate(self):
+        self.frame_buffer[0] = self.frame_buffer[1].copy()
         self.frame_buffer_ptr = self._len
         self.frame_ready.emit(self.frame_buffer[0])
         print('rotated')
     
-    def last_crossing(self, data, threshold):
+    def _first_crossing(self, data:np.ndarray, thr:float):
         """ Find index of the last crossing of threshold,
         that satisfies self.trig_mode
         For example, data = [-3,-1,0,1,2,3,1,2], threshold = 2.3 returns 4.
@@ -71,21 +83,19 @@ class Channel(QObject):
         :return idx: index of the last crossing, None 
                 if not found or invalid self.trig_mode
         """
-        data = np.array(data)
+        data = np.asarray(data, dtype=float)
+        if data.size < 2:
+            return None
+        high = data > thr
         if self.trig_mode == self.RISE:
-            idcs = np.flatnonzero((data[:-1] <= threshold) & (data[1:] > threshold))
-            return int(idcs[-1]) if idcs.size else None
+            idcs = np.flatnonzero(~high[:-1] &  high[1:])
         elif self.trig_mode == self.FALL:
-            idcs = np.flatnonzero((data[:-1] > threshold) & (data[1:] <= threshold))
-            int(idcs[-1]) if idcs.size else None
+            idcs = np.flatnonzero( high[:-1] & ~high[1:])
         elif self.trig_mode == self.RISE_FALL:
-            idcs_rise = np.flatnonzero((data[:-1] <= threshold) & (data[1:] > threshold))
-            idcs_fall = np.flatnonzero((data[:-1] > threshold) & (data[1:] <= threshold))
-            is_found = bool(idcs_rise.size) or bool(idcs_fall.size)
-            idx = np.max(idcs_rise[-1], idcs_fall[-1])
-            return idx if is_found else None
+            idcs = np.flatnonzero(high[:-1] ^  high[1:])
         else:
             return None
+        return int(idcs[0]) if idcs.size else None
 
     def stream_in(self, new_data:np.ndarray[float]):
         """ Adds data to current frame, spills into next frame.
@@ -94,63 +104,45 @@ class Channel(QObject):
         :param new_data: (np.ndarray[float]) list of new 
                 data, newest values last
         """
-        if self.is_active:
-            new_data = np.array(new_data)
-            new_data_len = len(new_data)
+        if not self.is_active:
+            return
 
-            if new_data_len < self.frame_buffer_ptr:
-                # Not enough data to fill frame. Push stack, no need to check edge.
-                self.frame_buffer[1] = np.concatenate([
-                        np.zeros(self.frame_buffer_ptr - new_data_len),
-                        self.frame_buffer[1][self.frame_buffer_ptr:],
-                        new_data])
-                self.frame_buffer_ptr -= new_data_len
-            elif self.frame_buffer_ptr <= new_data_len < self._len + self.frame_buffer_ptr:
-                if self.trig_mode == self.NONE:
-                    # Push stack
-                    temp_ptr = self.frame_buffer_ptr
-                    self.frame_buffer[1] = np.concatenate([
-                            self.frame_buffer[1][self.frame_buffer_ptr:],
-                            new_data[0:self.frame_buffer_ptr]])
-                    self.rotate_frame_buf()
-                    self.frame_buffer[1] = np.concatenate([
-                            np.zeros(self._len + temp_ptr - new_data_len),
-                            new_data[temp_ptr:]])
-                    self.frame_buffer_ptr = self._len - new_data_len + temp_ptr
-                else:
-                    full_data = np.concatenate([self.frame_buffer[1][self.frame_buffer_ptr:], new_data])
-                    search_start = int(self._len * self.pretrig)
-                    search_end   = new_data_len + search_start + 1  # +1 to include endpoint
-                    edge_relative_idx = self.last_crossing(full_data[search_start:search_end], self.trig_threshold)
-                    # logger.debug(full_data[search_start:search_end])
-                    if edge_relative_idx is not None:
-                        # Place newest edge at pretrig position
-                        edge_absolute_idx = edge_relative_idx + search_start
-                        fragment = full_data[edge_absolute_idx:edge_absolute_idx+self._len+1]
-                        if len(fragment) >= self._len:
-                            self.frame_buffer[1] = fragment[-self._len:]
-                            self.rotate_frame_buf()
-                        elif len(fragment) < self._len:
-                            length_difference = self._len - len(fragment)
-                            try:
-                                self.frame_buffer[1] = np.concatenate([self.frame_buffer[1][-length_difference:], fragment])
-                            except:
-                                breakpoint()
-                            self.rotate_frame_buf()
-                    else:
-                        # Fall back to trig_mode='none'
-                        temp_ptr = self.frame_buffer_ptr
-                        self.frame_buffer[1] = np.concatenate([
-                                self.frame_buffer[1][self.frame_buffer_ptr:],
-                                new_data[0:self.frame_buffer_ptr]])
-                        self.rotate_frame_buf()
-                        self.frame_buffer[1] = np.concatenate([
-                                np.zeros(self._len + temp_ptr - new_data_len),
-                                new_data[temp_ptr:]])
-                        self.frame_buffer_ptr = self._len - new_data_len + temp_ptr
-            elif new_data_len >= self._len + self.frame_buffer_ptr + 1:
-                # Frame buffer overflows, some data is lost
-                self.frame_buffer[1] = new_data[-self._len:]
-                self.rotate_frame_buf()
-                self.frame_buffer[1] = np.zeros(self._len)
-                self.frame_buffer_ptr = self._len
+        # 1.  Append the fresh samples to the look-ahead queue
+        self._lookahead.extend(np.asarray(new_data, dtype=float))
+
+        # 2.  Not enough data yet?  Just wait for the next chunk
+        if len(self._lookahead) < self._lookahead.maxlen:
+            return
+
+        # 3.  Build a contiguous array of exactly maxlen samples
+        full = np.asarray(self._lookahead, dtype=float)   # length = 750
+        s0   = int(self._len * self.pretrig)              # 250
+
+        # 4.  Find the **first** edge that leaves room for the post-trigger tail
+        idx_rel = None
+        if self.trig_mode != self.NONE:
+            cand = self._first_crossing(full[s0:], self.trig_threshold)
+            if cand is not None:
+                edge_abs = s0 + cand
+                if edge_abs + self._post_len <= len(full):
+                    idx_rel = cand                       # accept
+
+        # 5.  If still no edge → free-run (never freezes)
+        if idx_rel is None:
+            fragment = full[-self._len:]                 # last 500 samples
+            triggered = False
+        else:
+            start     = idx_rel                          # edge at x = s0
+            fragment  = full[start:start + self._len]
+            triggered = True
+
+        # 6.  Ship the frame
+        self.frame_buffer[0] = fragment                  # front buffer
+        self.frame_ready.emit(fragment)
+        print('frame ready', end='')
+
+        # 7.  Keep the *last* (len + post_len) samples for next search
+        #     (= drop exactly the len samples we just plotted)
+        for _ in range(self._len):
+            self._lookahead.popleft()
+            

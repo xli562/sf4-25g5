@@ -29,14 +29,13 @@ class Arduino(QThread):
         x = 0
         while self._running:
             # Sleep for a random interval between 5 and 50 ms
-            interval = random.uniform(0.0005, 0.005)
+            interval = random.uniform(0.00005, 0.0005)
             time.sleep(interval)
             chunk_size = random.randint(1, 5)
-            data = [np.sin(t/20) for t in np.arange(x, x + chunk_size)]
+            data = [np.sin(t/15) for t in np.arange(x, x + chunk_size)]
             self.chn_1_serial_input.emit(data)
             # logger.debug(data)
             x += chunk_size
-            x %= 360
 
     def stop(self):
         """Stop the simulator thread on next loop iteration."""
