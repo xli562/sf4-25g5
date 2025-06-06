@@ -1,9 +1,9 @@
-from PySide6.QtWidgets import QWidget, QComboBox
-from PySide6.QtWidgets import QGraphicsView
+from PySide6.QtWidgets import QWidget, QComboBox, QGraphicsView, QButtonGroup
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QTimer
 from utils.components import MultButton, DiscreteSlider, DynamicLabel
 from utils.dsp import Channel
+from utils.comms import Arduino
 from utils.xlogging import get_logger
 import pyqtgraph as pg
 import numpy as np
@@ -43,6 +43,7 @@ class ControlPane(BaseWidget):
         self.init_cboxes()
         self.init_dslds()
         self.init_slds()
+        self.init_btngrps()
 
     def init_dlbls(self):
         """ Inits the DynamicLabels """
@@ -174,32 +175,41 @@ class ControlPane(BaseWidget):
         self.ui.hoffset_sld.setRange(-180, 179)
         self.ui.hoffset_sld.setValue(0)
 
+    def init_btngrps(self):
+        """ Init button groups """
+        self.trig_btngrp = QButtonGroup(self.ui)
+        self.trig_btngrp.addButton(self.ui.trig_type_sing_btn)
+        self.trig_btngrp.addButton(self.ui.trig_type_none_btn)
+        self.trig_btngrp.addButton(self.ui.trig_type_rise_btn)
+        self.trig_btngrp.addButton(self.ui.trig_type_fall_btn)
+        self.trig_btngrp.addButton(self.ui.trig_type_risefall_btn)
+        self.ui.trig_type_none_btn.setChecked(True)
+
 class WaveCanvas(pg.PlotWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.name = 'wave_pane'
+        self.channels:list[Channel] = []
         self.init_ui()
 
     def init_ui(self):
         self.setFixedSize(self.parent().size())
         self.getViewBox().setMouseEnabled(x=False, y=False)
 
-        self.xs = list(range(100))
-        self.ys = [np.sin(x/10) for x in range(100)]
+        self.xs = np.array([])
+        self.ys = np.array([])
         self.setBackground('w')
         self.pen = pg.mkPen(color=(255, 0, 0))
         self.ch1_line = self.plot(self.xs, self.ys, pen=self.pen)
-
-        self.timer = QTimer()
-        self.timer.setInterval(50)
-        self.timer.timeout.connect(self.grab_data)
-        self.timer.start()
-
-    def grab_data(self):
-        self.xs = self.xs[1:]
-        self.xs.append(self.xs[-1] + 1)
-        self.ys = self.ys[1:]
-        self.ys.append(np.sin(self.xs[-1]/10))
+    
+    def add_channel(self, chn):
+        """ Adds a channel to the wave canvas """
+        chn.frame_ready.connect(lambda val: self.update(val))
+        self.channels.append(chn)
+    
+    def update(self, data):
+        self.xs = np.arange(self.channels[0]._len)
+        self.ys = data
         self.ch1_line.setData(self.xs, self.ys)
 
 class StatusBar(BaseWidget):
@@ -237,5 +247,12 @@ class MainWindow(BaseWidget):
         self.ctrl_pane = ControlPane(self.ui.ctrl_pane_container)
         self.wave_pane = WaveCanvas(self.ui.wave_pane_container)
         self.stat_bar  = StatusBar(self.ui.stat_bar_container)
-        # self.setFixedSize(self.size())
-        # self.ui.wave_pane_container.setCentralWidget(self.wave_pane)
+        self.arduino = Arduino()
+        self.arduino.start()
+        self.chn1 = Channel()
+        # self.chn1.set_length(500)
+        self.chn1.trig_mode = Channel.RISE
+        self.wave_pane.add_channel(self.chn1)
+        self.chn1.init_source(self.arduino.chn_1_serial_input)
+
+        
