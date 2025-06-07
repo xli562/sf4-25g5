@@ -392,8 +392,11 @@ setup</string>
      <height>25</height>
     </rect>
    </property>
+   <property name="maximum">
+    <double>1.000000000000000</double>
+   </property>
   </widget>
-  <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
+  <widget class="QDoubleSpinBox" name="trig_pretrg_sbox">
    <property name="geometry">
     <rect>
      <x>120</x>
@@ -401,6 +404,12 @@ setup</string>
      <width>61</width>
      <height>25</height>
     </rect>
+   </property>
+   <property name="maximum">
+    <double>1.000000000000000</double>
+   </property>
+   <property name="singleStep">
+    <double>0.010000000000000</double>
    </property>
   </widget>
   <widget class="QLabel" name="label_11">
@@ -416,7 +425,7 @@ setup</string>
     <string>pre-trigger</string>
    </property>
   </widget>
-  <widget class="DiscreteSlider" name="trig_pretrg_dsld">
+  <widget class="QSlider" name="trig_pretrg_sld">
    <property name="geometry">
     <rect>
      <x>30</x>
@@ -426,7 +435,7 @@ setup</string>
     </rect>
    </property>
    <property name="maximum">
-    <number>359</number>
+    <number>101</number>
    </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
@@ -710,7 +719,7 @@ setup</string>
     <rect>
      <x>20</x>
      <y>65</y>
-     <width>80</width>
+     <width>131</width>
      <height>30</height>
     </rect>
    </property>
@@ -724,9 +733,9 @@ setup</string>
   <widget class="QComboBox" name="measure_type_cbox">
    <property name="geometry">
     <rect>
-     <x>110</x>
+     <x>160</x>
      <y>65</y>
-     <width>70</width>
+     <width>111</width>
      <height>30</height>
     </rect>
    </property>
@@ -813,8 +822,8 @@ setup</string>
   <tabstop>trig_src_mbtn</tabstop>
   <tabstop>trig_threshold_sld</tabstop>
   <tabstop>trig_threshold_sbox</tabstop>
-  <tabstop>trig_pretrg_dsld</tabstop>
-  <tabstop>doubleSpinBox_2</tabstop>
+  <tabstop>trig_pretrg_sld</tabstop>
+  <tabstop>trig_pretrg_sbox</tabstop>
  </tabstops>
  <resources/>
  <connections/>

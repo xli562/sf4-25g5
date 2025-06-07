@@ -99,7 +99,7 @@ Ch1</string>
 Ch1 + Ch2</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label">
+  <widget class="DynamicLabel" name="meas_2_dlbl">
    <property name="geometry">
     <rect>
      <x>520</x>
@@ -112,7 +112,7 @@ Ch1 + Ch2</string>
     <string>/</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_2">
+  <widget class="DynamicLabel" name="meas_3_dlbl">
    <property name="geometry">
     <rect>
      <x>650</x>
@@ -126,7 +126,7 @@ Ch1 + Ch2</string>
 max = -25 dB</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_4">
+  <widget class="DynamicLabel" name="meas_1_dlbl">
    <property name="geometry">
     <rect>
      <x>390</x>
@@ -140,7 +140,7 @@ max = -25 dB</string>
 Vrms = 2 V</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_3">
+  <widget class="DynamicLabel" name="meas_4_dlbl">
    <property name="geometry">
     <rect>
      <x>800</x>
@@ -155,6 +155,13 @@ Vrms = 2 V</string>
    </property>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>DynamicLabel</class>
+   <extends>QLabel</extends>
+   <header>dynamiclabel</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

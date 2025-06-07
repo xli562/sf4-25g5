@@ -103,12 +103,22 @@ class DynamicLabel(QLabel):
         self.format = ''
         self.ureg = pint.UnitRegistry() # For V / mV / s / ms / ns etc. conversion
     
-    def init(self, dynamic_texts:list[str], format:str):
+    def init(self, dynamic_texts:list[str], format:str, val_idx=0, unit_idx=1):
+        """ Initialises the dynamic label.
+         
+        :param dynamix_texts: (list[str]) placeholders that go inside the
+                curly brackets. 
+        :param format: (str) specifies the format of the label
+        :param val_idx: (int) position of the 'value' in the defined format
+        :param unit_idx: (int) position of the unit of the value
+        """
         self.dynamic_texts = dynamic_texts
         self.format = format
+        self.val_idx  = val_idx
+        self.unit_idx = unit_idx
         self.setText(self.format.format(*self.dynamic_texts))
 
-    def update_text(self, index:int, new_text:str):
+    def update_text(self, idx:int, new_text:str):
         """ Update one of the dynamic texts and refresh the label
         
         :param index: (int) index in dynamic_texts list to update
@@ -117,7 +127,7 @@ class DynamicLabel(QLabel):
         :return result: (str) updated formatted text
         """
         # replace the desired segment
-        self.dynamic_texts[index] = new_text
+        self.dynamic_texts[idx] = new_text
         # reformat and update the QLabel
         self.setText(self.format.format(*self.dynamic_texts))
     
@@ -157,9 +167,6 @@ class DynamicLabel(QLabel):
 
         # Format the display value
         displ_val = f"{scaled_value:.0f}"
-        self.setText(self.format.format(displ_val, unit))
-        # logger.debug(f'new val = {new_val}')
-        # logger.debug(f'displ_val = {displ_val}')
-        # logger.debug(f'unit = {unit}')
-
-
+        self.dynamic_texts[self.val_idx] = displ_val
+        self.dynamic_texts[self.unit_idx] = unit
+        self.setText(self.format.format(*self.dynamic_texts))

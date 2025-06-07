@@ -1,8 +1,8 @@
-from PySide6.QtWidgets import QWidget, QComboBox, QGraphicsView, QButtonGroup
+from PySide6.QtWidgets import QWidget, QComboBox, QGraphicsView, QButtonGroup, QDoubleSpinBox
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QTimer
 from utils.components import MultButton, DiscreteSlider, DynamicLabel
-from utils.dsp import Channel
+from utils.dsp import Channel, Measurement
 from utils.comms import Arduino
 from utils.xlogging import get_logger
 import pyqtgraph as pg
@@ -33,12 +33,14 @@ class ControlPane(BaseWidget):
         super().__init__(parent)
         self.name = 'ctrl_pane'
         self.init_ui()
+        self.init_connections()
     
     def init_ui(self):
         """ Loads ui, initialises components """
 
         super().init_ui()
         self.init_dlbls()
+        self.init_sboxes()
         self.init_mbtns()
         self.init_cboxes()
         self.init_dslds()
@@ -50,6 +52,9 @@ class ControlPane(BaseWidget):
 
         self.ui.hscale_dlbl.init(['5', 'm'], '{} {}s / div')
         self.ui.vscale_dlbl.init(['500', 'm'], '{} {}V / div')
+
+    def init_sboxes(self):
+        self.ui.trig_pretrg_sbox.setValue(0.5)
 
     def init_mbtns(self):
         """ Inits the MultButtons """
@@ -150,23 +155,15 @@ class ControlPane(BaseWidget):
 
         # TODO: cover all cboxes
         self.ui.fft_window_cbox.addItems(['Hamming', 'Hann', 'Rect'])   # Optional add-on: Blackman, Flattop
+        self.ui.measure_type_cbox.addItems(['Max', 'Min', 'RMS'])   # Optional add-on: Blackman, Flattop
 
     def init_dslds(self):
         """ Inits the DiscreteSliders """
 
         # TODO: cover all dslds
         self.ui.hscale_dsld.set_levels([0.005, 0.1, 1])
-        self.ui.hscale_dsld.snapped.connect(
-            lambda val: self.ui.hscale_dlbl.update_unit(val)
-        )
         self.ui.vscale_dsld.set_levels([0.5, 1, 5])
-        self.ui.vscale_dsld.snapped.connect(
-            lambda val: self.ui.vscale_dlbl.update_unit(val)
-        )
-        self.ui.trig_pretrg_dsld.set_levels(list(range(0, 101, 10)))
-        # self.ui.trig_pretrg_dsld.snapped.connect(
-        #     lambda val: self.ui.vscale_dlbl.update_text(0, val)
-        # )
+        
 
     def init_slds(self):
         """ Inits the QSliders """
@@ -174,6 +171,8 @@ class ControlPane(BaseWidget):
         # TODO: cover all slds
         self.ui.hoffset_sld.setRange(-180, 179)
         self.ui.hoffset_sld.setValue(0)
+        self.ui.trig_pretrg_sld.setRange(0,100)
+        self.ui.trig_pretrg_sld.setValue(50)
 
     def init_btngrps(self):
         """ Init button groups """
@@ -185,11 +184,20 @@ class ControlPane(BaseWidget):
         self.trig_btngrp.addButton(self.ui.trig_type_risefall_btn)
         self.ui.trig_type_none_btn.setChecked(True)
 
+    def init_connections(self):
+        self.ui.hscale_dsld.snapped.connect(
+            lambda val: self.ui.hscale_dlbl.update_unit(val))
+        self.ui.vscale_dsld.snapped.connect(
+            lambda val: self.ui.vscale_dlbl.update_unit(val))
+        self.ui.trig_pretrg_sld.valueChanged.connect(
+            lambda val: self.ui.trig_pretrg_sbox.setValue(round(val/100, 2)))
+        self.ui.trig_pretrg_sbox.valueChanged.connect(
+            lambda val: self.ui.trig_pretrg_sld.setValue(int(val*100)))
+
 class WaveCanvas(pg.PlotWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.name = 'wave_pane'
-        self.channels:list[Channel] = []
         self.init_ui()
 
     def init_ui(self):
@@ -202,13 +210,8 @@ class WaveCanvas(pg.PlotWidget):
         self.pen = pg.mkPen(color=(255, 0, 0))
         self.ch1_line = self.plot(self.xs, self.ys, pen=self.pen)
     
-    def add_channel(self, chn):
-        """ Adds a channel to the wave canvas """
-        chn.frame_ready.connect(lambda val: self.update(val))
-        self.channels.append(chn)
-    
     def update(self, data):
-        self.xs = np.arange(self.channels[0]._len)
+        self.xs = np.arange(len(data))
         self.ys = data
         self.ch1_line.setData(self.xs, self.ys)
 
@@ -227,7 +230,10 @@ class StatusBar(BaseWidget):
 
     def init_dlbls(self):
         """ Inits the DynamicLabels """
-        pass
+        self.ui.meas_1_dlbl.init(['Ch_', '_', '2', 'm', 'V'], '{}\n{} = {} {}{}', 2, 3)
+        self.ui.meas_2_dlbl.init(['Ch_', '_', '2', 'm', 'V'], '{}\n{} = {} {}{}', 2, 3)
+        self.ui.meas_3_dlbl.init(['Ch_', '_', '2', 'm', 'V'], '{}\n{} = {} {}{}', 2, 3)
+        self.ui.meas_4_dlbl.init(['Ch_', '_', '2', 'm', 'V'], '{}\n{} = {} {}{}', 2, 3)
 
     def init_mbtns(self):
         """ Inits the MultButtons """
@@ -235,24 +241,50 @@ class StatusBar(BaseWidget):
         # TODO: cover all mbtns
         pass
 
-
 class MainWindow(BaseWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.name = 'main_window'
+        self.chns:list[Channel] = []
+        self.measurements = []
         self.init_ui()
+        self.init_dsp()
 
     def init_ui(self):
         super().init_ui()
         self.ctrl_pane = ControlPane(self.ui.ctrl_pane_container)
         self.wave_pane = WaveCanvas(self.ui.wave_pane_container)
         self.stat_bar  = StatusBar(self.ui.stat_bar_container)
+
+    def init_dsp(self):
+        """ Initialises the DSP backend """
         self.arduino = Arduino()
         self.arduino.start()
-        self.chn1 = Channel()
-        # self.chn1.set_length(500)
-        self.chn1.trig_mode = Channel.RISE
-        self.wave_pane.add_channel(self.chn1)
-        self.chn1.init_source(self.arduino.chn_1_serial_input)
 
-        
+        chn1 = Channel()
+        chn1.name = 'Channel 1'
+        self.ctrl_pane.ui.measure_src_cbox.addItem(chn1.name)
+        chn1.set_length(500)
+        chn1.trig_mode = Channel.RISE
+        chn1.frame_ready.connect(
+            lambda val: self.wave_pane.update(val))
+        self.ctrl_pane.ui.trig_pretrg_sbox.valueChanged.connect(
+            lambda val: chn1.set_pretrg(val))
+        chn1.init_source(self.arduino.chn_1_serial_input)
+        self.chns.append(chn1)
+        self.ctrl_pane.ui.measure_add_btn.clicked.connect(
+            self.add_measurement
+        )
+
+    def add_measurement(self):
+        src_chn_name = self.ctrl_pane.ui.measure_src_cbox.currentText()
+        # breakpoint()
+        src_chn = next(chn for chn in self.chns if chn.name == src_chn_name)
+        meas_type = self.ctrl_pane.ui.measure_type_cbox.currentText()
+        measurement = Measurement()
+        measurement.init(src_chn, meas_type)
+        self.measurements.append(measurement)
+        self.stat_bar.ui.meas_1_dlbl.dynamic_texts = [
+            src_chn.title(0), meas_type, 0, 'm', 'V']
+        measurement.meas_ready.connect(
+            lambda val: self.stat_bar.ui.meas_1_dlbl.update_unit(val))

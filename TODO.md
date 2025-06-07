@@ -7,11 +7,13 @@ PySide6 quick guides:
 - [plotting](https://www.pythonguis.com/tutorials/pyside6-plotting-pyqtgraph/)
 - [combobox](https://www.pythonguis.com/docs/qcombobox/)
 
-1. Connect channels to canvas, feed fake datastream to channel.
-1. Channel 1 & 2 should always have the same colors as Keysight scope, math channels should have a fixed color sequence. (London tube colors?)
 1. Add measurement region below wave_pane, 4 measurements at most, absolutely NO scrolling. Click mouse midkey to delete measurement.
+1. Make FFT channel
+1. Make selectible trigger type with buttongroups
 1. (optional) Make measurement cursor for (x,y) readout
 1. (optional) If GUI too slow, replace some lists with np.array
+1. Channel 1 & 2 should always have the same colors as Keysight scope, math channels should have a fixed color sequence. (London tube colors?)
+1. Use css formatting.
 
 ## Feature specification
 

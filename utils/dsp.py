@@ -26,21 +26,20 @@ class Channel(QObject):
         self.is_active = True
         self.trig_mode = self.NONE
         self.trig_threshold = 0.0
-        self.pretrig = 0.3
-        self._len = 500
+        self.pretrg = 0.3
+        self._len = 10
         self.frame_buffer = np.zeros((2, self._len))
         # frame buffer pointer points to the earliest filled
         # location in frame_buffer[1] (buffer
         # fills from high index to low index)
         # buffer empty: self.frame_buffer_ptr = self.len
         # buffer full : self.frame_buffer_ptr = 0
-        self.frame_buffer_ptr = self._len
-
-        self._post_len   = self._len - int(self._len * self.pretrig)
+        self._frame_buffer_ptr = self._len
+        self._post_len   = self._len - int(self._len * self.pretrg)
         self._lookahead  = deque(maxlen=self._len + self._post_len)
 
     def __str__(self):
-        retstr  = 'Channel:'
+        retstr  = f'{self.name}:'
         retstr += f'{str(self.frame_buffer[0])}\n'
         retstr += f'{str(self.frame_buffer[1])}'
         return retstr
@@ -48,14 +47,33 @@ class Channel(QObject):
     def __len__(self):
         return self._len
     
+    def title(self, length:int):
+        """ Returns short, medium or full name of channel.
+        
+        :param length: (int) 0: short, 1: medium, 2: full
+        :return: (str) e.g. Ch1, Chn. 1, Channel 1
+        """
+        retstr = ''
+        if length == 0:
+            retstr = f'Ch{self.name[-1]}'
+        elif length == 1:
+            retstr = f'Chn. {self.name[-1]}'
+        elif length == 2:
+            retstr = self.name
+        else:
+            logger.debug(f'Invalid length specified: {length}')
+        return retstr
+
     def set_length(self, new_len):
         self._len = new_len
-        self.frame_buffer = np.array([np.zeros(self._len), np.zeros(self._len)])
-        self.frame_buffer_ptr = self._len
-    
-    def set_pretrig(self, new_pretrig):
-        self.pretrig = new_pretrig
-        self._post_len   = self._len - int(self._len * self.pretrig)
+        self.frame_buffer = np.zeros((2, self._len))
+        self._frame_buffer_ptr = self._len
+        self._post_len   = self._len - int(self._len * self.pretrg)
+        self._lookahead  = deque(maxlen=self._len + self._post_len)
+
+    def set_pretrg(self, new_pretrg):
+        self.pretrg = new_pretrg
+        self._post_len   = self._len - int(self._len * self.pretrg)
         self._lookahead  = deque(maxlen=self._len + self._post_len)
 
     def set_threshold(self, new_threshold):
@@ -65,12 +83,6 @@ class Channel(QObject):
         """ Connects serial input signal to channel """
         self.source = src
         self.source.connect(lambda val: self.stream_in(val))
-    
-    def _rotate(self):
-        self.frame_buffer[0] = self.frame_buffer[1].copy()
-        self.frame_buffer_ptr = self._len
-        self.frame_ready.emit(self.frame_buffer[0])
-        print('rotated')
     
     def _first_crossing(self, data:np.ndarray, thr:float):
         """ Find index of the last crossing of threshold,
@@ -116,7 +128,7 @@ class Channel(QObject):
 
         # 3.  Build a contiguous array of exactly maxlen samples
         full = np.asarray(self._lookahead, dtype=float)   # length = 750
-        s0   = int(self._len * self.pretrig)              # 250
+        s0   = int(self._len * self.pretrg)              # 250
 
         # 4.  Find the **first** edge that leaves room for the post-trigger tail
         idx_rel = None
@@ -139,10 +151,49 @@ class Channel(QObject):
         # 6.  Ship the frame
         self.frame_buffer[0] = fragment                  # front buffer
         self.frame_ready.emit(fragment)
-        print('frame ready', end='')
+        # print('frame ready', end='')
 
         # 7.  Keep the *last* (len + post_len) samples for next search
         #     (= drop exactly the len samples we just plotted)
         for _ in range(self._len):
             self._lookahead.popleft()
-            
+
+class Measurement(QObject):
+    """ Represents a measurement of a channel """
+
+    MAX = 'Max'
+    MIN = 'Min'
+    FREQ = 'freq'
+    RMS = 'RMS'
+    meas_ready = Signal(float)
+
+    def __init__(self, parent=None):
+        super().__init__()
+
+    def __str__(self):
+        retstr = f'self.source.title(0)\n'
+        retstr += f'{self.type} = {self.val} {self.units}'
+        return retstr
+    
+    def __repr__(self):
+        retstr = f'Measurement {self.type} of {self.src.name}, value = {self.val}'
+        return retstr
+    
+    def init(self, chn:Channel, type:str, units:str=''):
+        self.src = chn
+        self.type = type
+        self.val = 0.0
+        self.units = units
+        self.src.frame_ready.connect(
+            lambda val: self.update(val))
+    
+    def update(self, data:np.ndarray):
+        """ Updates self.value. """
+
+        if self.type == self.MAX:
+            self.val = np.max(data)
+        elif self.type == self.MIN:
+            self.val = np.min(data)
+        elif self.type == self.RMS:
+            self.val = round(float(np.sqrt(np.mean(data**2))), 4)
+        self.meas_ready.emit(self.val)
