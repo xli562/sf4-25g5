@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QComboBox, QGraphicsView, QButtonGroup, QDoubleSpinBox
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QFile, QTimer
+from PySide6.QtCore import QFile, QTimer, SignalInstance
 from utils.components import MultButton, DiscreteSlider, DynamicLabel
 from utils.dsp import Channel, Measurement
 from utils.comms import Arduino
@@ -18,7 +18,7 @@ class BaseWidget(QWidget):
         self.setParent(parent)
 
     def init_ui(self):
-        """ Loads ui from .ui file """
+        """ Loads ui from .ui file, initialises any components """
 
         loader = QUiLoader()
         loader.registerCustomWidget(MultButton)
@@ -36,8 +36,6 @@ class ControlPane(BaseWidget):
         self.init_connections()
     
     def init_ui(self):
-        """ Loads ui, initialises components """
-
         super().init_ui()
         self.init_dlbls()
         self.init_sboxes()
@@ -176,6 +174,7 @@ class ControlPane(BaseWidget):
 
     def init_btngrps(self):
         """ Init button groups """
+
         self.trig_btngrp = QButtonGroup(self.ui)
         self.trig_btngrp.addButton(self.ui.trig_type_sing_btn)
         self.trig_btngrp.addButton(self.ui.trig_type_none_btn)
@@ -198,22 +197,23 @@ class WaveCanvas(pg.PlotWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.name = 'wave_pane'
+        self.lines = []
         self.init_ui()
 
     def init_ui(self):
         self.setFixedSize(self.parent().size())
         self.getViewBox().setMouseEnabled(x=False, y=False)
-
-        self.xs = np.array([])
-        self.ys = np.array([])
-        self.setBackground('w')
-        self.pen = pg.mkPen(color=(255, 0, 0))
-        self.ch1_line = self.plot(self.xs, self.ys, pen=self.pen)
+        self.setBackground('black')
     
-    def update(self, data):
-        self.xs = np.arange(len(data))
-        self.ys = data
-        self.ch1_line.setData(self.xs, self.ys)
+    def add_channel(self, chn:Channel):
+        """ Adds a line in plot to represent added channel """
+
+        pen = pg.mkPen(color=chn.color, width=3)
+        line = self.plot(np.arange(len(chn)), np.zeros(len(chn)), pen=pen)
+        self.lines.append(line)
+
+    def update(self, line_idx:int, data:np.ndarray):
+        self.lines[line_idx].setData(np.arange(len(data)), data)
 
 class StatusBar(BaseWidget):
     def __init__(self, parent=None):
@@ -222,14 +222,13 @@ class StatusBar(BaseWidget):
         self.init_ui()
     
     def init_ui(self):
-        """ Loads ui, initialises components """
-
         super().init_ui()
         self.init_dlbls()
         self.init_mbtns()
 
     def init_dlbls(self):
         """ Inits the DynamicLabels """
+        
         self.ui.meas_1_dlbl.init(['Ch_', '_', '2', 'm', 'V'], '{}\n{} = {} {}{}', 2, 3)
         self.ui.meas_2_dlbl.init(['Ch_', '_', '2', 'm', 'V'], '{}\n{} = {} {}{}', 2, 3)
         self.ui.meas_3_dlbl.init(['Ch_', '_', '2', 'm', 'V'], '{}\n{} = {} {}{}', 2, 3)
@@ -242,10 +241,15 @@ class StatusBar(BaseWidget):
         pass
 
 class MainWindow(BaseWidget):
+    """ All subsystems are connected together in the main window. """
+
+    DEFAULT_SIMPLE_CHANNEL_LENGTH          = 500
+    DEFAULT_SIMPLE_CHANNEL_SAMPLING_PERIOD = 1/50_000
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.name = 'main_window'
-        self.chns:list[Channel] = []
+        self.channels:list[Channel] = []
         self.measurements = []
         self.init_ui()
         self.init_dsp()
@@ -257,36 +261,72 @@ class MainWindow(BaseWidget):
         self.stat_bar  = StatusBar(self.ui.stat_bar_container)
 
     def init_dsp(self):
-        """ Initialises the DSP backend """
+        """ Inits the DSP backend """
+
         self.arduino = Arduino()
         self.arduino.start()
 
-        chn1 = Channel()
-        chn1.name = 'Channel 1'
-        self.ctrl_pane.ui.measure_src_cbox.addItem(chn1.name)
-        # chn1.set_length(500)
-        chn1.set_sampling_period(1/50_000)
-        chn1.init_fft(scale='dBV',         # or 'Vrms'
-            window='Hamming',    # 'Hamming' | 'Hann' | 'Rect'
-            span=5_000,          # 5 kHz displayed bandwidth
-            center=2_000,        # centred at 2 kHz
-            fft_size=2048        # any power-of-two ≥ 128
-        )
-        # chn1.trig_mode = Channel.RISE
-        chn1.frame_ready.connect(
-            lambda val: self.wave_pane.update(val))
-        # self.ctrl_pane.ui.trig_pretrg_sbox.valueChanged.connect(
-            # lambda val: chn1.set_pretrg(val))
-        chn1.init_source(self.arduino.chn_1_serial_input)
-        self.chns.append(chn1)
-        self.ctrl_pane.ui.measure_add_btn.clicked.connect(
-            self.add_measurement
-        )
+        self.add_simple_channel('Channel 1', self.arduino.chn_1_serial_input)
+
+        # chn1 = Channel()
+        # chn1.name = 'Channel 1'
+        # self.ctrl_pane.ui.measure_src_cbox.addItem(chn1.name)
+        # # chn1.set_length(500)
+        # chn1.set_sampling_period(1/50_000)
+        # chn1.init_fft(scale='dBV',         # or 'Vrms'
+        #     window='Hamming',    # 'Hamming' | 'Hann' | 'Rect'
+        #     span=5_000,          # 5 kHz displayed bandwidth
+        #     center=2_000,        # centred at 2 kHz
+        #     fft_size=2048        # any power-of-two ≥ 128
+        # )
+        # # chn1.trig_mode = Channel.RISE
+        # chn1.frame_ready.connect(
+        #     lambda val: self.wave_pane.update(val))
+        # # self.ctrl_pane.ui.trig_pretrg_sbox.valueChanged.connect(
+        #     # lambda val: chn1.set_pretrg(val))
+        # chn1.init_source(self.arduino.chn_1_serial_input)
+        # self.channels.append(chn1)
+        # self.ctrl_pane.ui.measure_add_btn.clicked.connect(
+        #     self.add_measurement
+        # )
+
+    def add_fft_channel(self, source_chn:Channel, scale, window, span, centre, fft_size=2048):
+        """ Inits an FFT channel from a source channel. """
+        chn = Channel()
+        chn.name = 'FFT'
+        chn.init_fft(scale=scale, window=window, span=span,
+                     center=centre, fft_size=fft_size)
+        self.wave_pane.add_channel(chn)
+        chn.frame_ready.connect(
+            lambda val: self.wave_pane.update(len(self.channels), val))
+        chn.init_source(source_chn.source)
+        self.channels.append(chn)
+
+    def add_simple_channel(self, chn_name:str, src:SignalInstance):
+        """ Sets up and appends a simple channel to self.channels.
+        
+        :param chn_name: (str) either 'Channel 1' or 'Channel 2'.
+        """
+
+        chns_count = len(self.channels)
+        chn = Channel()
+        chn.name = chn_name
+        if chn_name == 'Channel 1':
+            chn.color = np.array([236, 252, 32, 180])
+        elif chn_name == 'Channel 2':
+            chn.color = np.array([61, 222, 57, 180])
+        chn.set_length(self.DEFAULT_SIMPLE_CHANNEL_LENGTH)
+        chn.trig_mode = chn.RISE
+        self.wave_pane.add_channel(chn)
+        chn.frame_ready.connect(
+            lambda val: self.wave_pane.update(chns_count, val))
+        chn.init_source(src)
+        self.channels.append(chn)
 
     def add_measurement(self):
         src_chn_name = self.ctrl_pane.ui.measure_src_cbox.currentText()
         # breakpoint()
-        src_chn = next(chn for chn in self.chns if chn.name == src_chn_name)
+        src_chn = next(chn for chn in self.channels if chn.name == src_chn_name)
         meas_type = self.ctrl_pane.ui.measure_type_cbox.currentText()
         measurement = Measurement()
         measurement.init(src_chn, meas_type)

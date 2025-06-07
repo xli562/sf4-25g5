@@ -1,4 +1,4 @@
-from PySide6.QtCore import Signal, QObject
+from PySide6.QtCore import Signal, SignalInstance, QObject
 from PySide6.QtWidgets import QWidget
 import numpy as np
 from collections import deque
@@ -8,8 +8,11 @@ from utils.xlogging import get_logger
 logger = get_logger()
 
 class Channel(QObject):
-    """ Represents a channel. Slightly optimised for speed. """
-
+    """ Represents a channel. Slightly optimised for speed. 
+    
+    There are three types of channels: simple (raw output), arithmetic and FFT.
+    Simple channels are 'Channel 1' and 'Channel 2' (strict naming convention).
+    """
     frame_ready = Signal(np.ndarray)
     RISE      = 'rise'
     FALL      = 'fall'
@@ -26,8 +29,7 @@ class Channel(QObject):
         """ N.B assumes even self.len """
         super().__init__(parent)
         self.name = ''
-        self.color = np.array([0, 0, 0, 0])
-        self.line_width = 5
+        self.color = np.array([0, 0, 0, 0]) # RGBA
         self.is_active = True
         self.trig_mode = self.NONE
         self.trig_threshold = 0.0
@@ -99,7 +101,7 @@ class Channel(QObject):
             logger.debug(f'Sampling period must be > 0, got {new_t_s}')
         self._t_s = new_t_s
 
-    def init_source(self, src:Signal):
+    def init_source(self, src:SignalInstance):
         """ Connects serial input signal to channel """
         self.source = src
         self.source.connect(lambda val: self.stream_in(val))
@@ -135,7 +137,7 @@ class Channel(QObject):
         window: str       = HANN,       # 'Hamming' | 'Hann' | 'Rect'
         span:   int       = 1_000,          # Hz
         center: int       = 0,              # Hz
-        fft_size: int     = 1024            # power-of-two is fastest
+        fft_size: int     = 2048      # power-of-two is fastest
     ) -> None:
         """
         Switch the channel into FFT mode and configure its parameters.

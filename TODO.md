@@ -7,6 +7,10 @@ PySide6 quick guides:
 - [plotting](https://www.pythonguis.com/tutorials/pyside6-plotting-pyqtgraph/)
 - [combobox](https://www.pythonguis.com/docs/qcombobox/)
 
+1. Set up triggering for add_channel functions
+1. Hook up trigger select buttons & fft buttons
+1. Create remove_channel(idx) function
+1. Add measurement & remove measurement
 1. Add measurement region below wave_pane, 4 measurements at most, absolutely NO scrolling. Click mouse midkey to delete measurement.
 1. Make FFT channel
 1. Make selectible trigger type with buttongroups
