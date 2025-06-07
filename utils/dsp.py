@@ -45,13 +45,7 @@ class Channel(QObject):
         self._post_len   = self._len - int(self._len * self.pretrg)
         self._lookahead  = deque(maxlen=self._len + self._post_len)
         # FFT-specific state
-        self._mode_fft      = False          # False = normal time-domain
-        self._fft_size      = 1024
-        self._fft_window    = self.HANN
-        self._fft_scale     = self.VRMS
-        self._fft_center    = 0.0            # Hz
-        self._fft_span      = 0.0            # Hz
-        self._fft_buf       = deque(maxlen=self._fft_size)
+        self.is_fft      = False          # False = normal time-domain
         self._t_s           = 1.0            # sampling period (s) – user sets
 
     def __str__(self):
@@ -65,6 +59,7 @@ class Channel(QObject):
     
     def title(self, length:int):
         """ Returns short, medium or full name of channel.
+        Only works if self.name = 'Channel 1' or 'Channel 2'.
         
         :param length: (int) 0: short, 1: medium, 2: full
         :return: (str) e.g. Ch1, Chn. 1, Channel 1
@@ -79,6 +74,9 @@ class Channel(QObject):
         else:
             logger.debug(f'Invalid length specified: {length}')
         return retstr
+
+    def set_active(self, is_active:bool):
+        self.is_active = is_active
 
     def set_length(self, new_len):
         self._len = new_len
@@ -143,7 +141,7 @@ class Channel(QObject):
 
     def init_fft(
         self,
-        scale: str        = VRMS,     # 'Vrms' or 'dBV'
+        vscale: str        = VRMS,     # 'Vrms' or 'dBV'
         window: str       = HANN,       # 'Hamming' | 'Hann' | 'Rect'
         span:   int       = 1_000,          # Hz
         center: int       = 0,              # Hz
@@ -155,7 +153,7 @@ class Channel(QObject):
         (1-D float array) on every `_fft_size` fresh samples.
         """
         # -------- basic validation ----------
-        if scale not in (self.VRMS, self.DBV):
+        if vscale not in (self.VRMS, self.DBV):
             raise ValueError('scale must be "Vrms" or "dBV"')
         if window not in (self.HANN, self.HAMMING, self.RECT):
             raise ValueError('window must be Hann/Hamming/Rect')
@@ -165,17 +163,16 @@ class Channel(QObject):
             raise ValueError('span must be > 0 Hz')
 
         # -------- save config ---------------
-        self._mode_fft   = True
+        self.is_fft   = True
         self._fft_size   = fft_size
         self._fft_span   = float(span)
         self._fft_center = float(center)
-        self._fft_scale  = scale
-        self._fft_window = window
+        self.fft_vscale = vscale
         self._fft_buf    = deque(maxlen=self._fft_size)   # reset buffer
 
         # -------- pre-compute helpers -------
         self._bins = np.fft.rfftfreq(self._fft_size, d=self._t_s)       # Hz
-        self._win  = self._make_window(self._fft_size, window)   # 1-D
+        self.fft_window  = self._make_window(self._fft_size, window)   # 1-D
 
         # determine indices for the requested span/center
         half = self._fft_span / 2.0
@@ -188,10 +185,10 @@ class Channel(QObject):
         self._len = len(self._idx_span)                   # new logical length
         self.frame_buffer = np.zeros((2, self._len))      # keep same shape
 
-    # -----------------------------------------------------------------------
-    # helper to build the window table once
     @staticmethod
     def _make_window(N: int, kind: str) -> np.ndarray:
+        """ helper to build the window table once """
+
         if kind == Channel.RECT:
             return np.ones(N)
         if kind == Channel.HANN:
@@ -200,11 +197,13 @@ class Channel(QObject):
             return 0.54 - 0.46 * np.cos(2 * np.pi * np.arange(N) / (N - 1))
         raise ValueError('Unknown window type')
 
-    # -----------------------------------------------------------------------
-    # expose frequency axis for the GUI
-    def get_fft_freq_limits(self) -> tuple[float, float]:
-        """Return (f_min, f_max) in Hz of the current FFT frame."""
-        if not self._mode_fft:
+    def set_fft_window(self, new_window:str):
+        self.fft_window  = self._make_window(self._fft_size, new_window)
+
+    def get_fft_freq_range(self) -> tuple[float, float]:
+        """ Return (f_min, f_max) in Hz of the current FFT frame. """
+
+        if not self.is_fft:
             raise RuntimeError('Channel is not in FFT mode')
         return (float(self._bins[self._idx_span[0]]),
                 float(self._bins[self._idx_span[-1]]))
@@ -212,7 +211,7 @@ class Channel(QObject):
     def stream_in(self, new_data:np.ndarray[float]):
         if not self.is_active:
             return
-        if self._mode_fft:
+        if self.is_fft:
             self._stream_in_fft(new_data)
         else:
             self._stream_in_time(new_data)
@@ -224,9 +223,6 @@ class Channel(QObject):
         :param new_data: (np.ndarray[float]) list of new 
                 data, newest values last
         """
-        if not self.is_active:
-            return
-
         # 1.  Append the fresh samples to the look-ahead queue
         self._lookahead.extend(np.asarray(new_data, dtype=float))
 
@@ -279,11 +275,11 @@ class Channel(QObject):
         self._fft_buf.clear()                            # start fresh
 
         # ----- apply window & FFT -----------------------------------------
-        block_win = block * self._win
+        block_win = block * self.fft_window
         spec = np.abs(np.fft.rfft(block_win)) / (self._fft_size / 2)
 
         # scale to Vrms or dBV
-        if self._fft_scale == self.VRMS:
+        if self.fft_vscale == self.VRMS:
             y = spec / np.sqrt(2.0)
         else:  # dBV
             y = 20.0 * np.log10(np.maximum(spec / np.sqrt(2.0), 1e-20))

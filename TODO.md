@@ -7,15 +7,14 @@ PySide6 quick guides:
 - [plotting](https://www.pythonguis.com/tutorials/pyside6-plotting-pyqtgraph/)
 - [combobox](https://www.pythonguis.com/docs/qcombobox/)
 
-1. Set up triggering for add_channel functions
-1. Hook up trigger select buttons & fft buttons
-1. Create remove_channel(idx) function
-1. Add measurement & remove measurement
-1. Add measurement region below wave_pane, 4 measurements at most, absolutely NO scrolling. Click mouse midkey to delete measurement.
-1. Make FFT channel
-1. Make selectible trigger type with buttongroups
-1. (optional) Make measurement cursor for (x,y) readout
+1. Switch channels on and off with status bar buttons
+1. enable zeroing offset signals
+1. Time-domain signal timescale & offset, voltage scale & offset
+1. Add measurement & remove measurement (click mouse midkey).
 1. (optional) If GUI too slow, replace some lists with np.array
+
+1. Make channel 2
+1. Make measurement cursor for (x,y) readout
 1. Channel 1 & 2 should always have the same colors as Keysight scope, math channels should have a fixed color sequence. (London tube colors?)
 1. Use css formatting.
 

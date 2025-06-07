@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>892</width>
-    <height>52</height>
+    <width>890</width>
+    <height>48</height>
    </rect>
   </property>
   <property name="font">
@@ -22,13 +22,13 @@
   <property name="locale">
    <locale language="English" country="UnitedKingdom"/>
   </property>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="MultButton" name="ch1_mbtn">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>61</width>
-     <height>51</height>
+     <x>10</x>
+     <y>5</y>
+     <width>101</width>
+     <height>40</height>
     </rect>
    </property>
    <property name="font">
@@ -41,68 +41,27 @@
     <string notr="true">background-color:yellow;</string>
    </property>
    <property name="text">
-    <string>Ch1</string>
+    <string>Channel 1</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_2">
+  <widget class="MultButton" name="fft_mbtn">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>0</y>
-     <width>61</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Ch2</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton_3">
-   <property name="geometry">
-    <rect>
-     <x>140</x>
-     <y>0</y>
-     <width>71</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Ch1 +
-Ch2</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton_4">
-   <property name="geometry">
-    <rect>
-     <x>220</x>
-     <y>0</y>
-     <width>71</width>
-     <height>51</height>
+     <x>130</x>
+     <y>5</y>
+     <width>101</width>
+     <height>40</height>
     </rect>
    </property>
    <property name="text">
     <string>FFT
-Ch1</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton_5">
-   <property name="geometry">
-    <rect>
-     <x>300</x>
-     <y>0</y>
-     <width>81</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>FFT
-Ch3</string>
+Channel 1</string>
    </property>
   </widget>
   <widget class="DynamicLabel" name="meas_2_dlbl">
    <property name="geometry">
     <rect>
-     <x>520</x>
+     <x>470</x>
      <y>0</y>
      <width>121</width>
      <height>51</height>
@@ -115,7 +74,7 @@ Ch3</string>
   <widget class="DynamicLabel" name="meas_3_dlbl">
    <property name="geometry">
     <rect>
-     <x>650</x>
+     <x>600</x>
      <y>0</y>
      <width>141</width>
      <height>51</height>
@@ -129,7 +88,7 @@ max = -25 dB</string>
   <widget class="DynamicLabel" name="meas_1_dlbl">
    <property name="geometry">
     <rect>
-     <x>390</x>
+     <x>340</x>
      <y>0</y>
      <width>121</width>
      <height>51</height>
@@ -143,7 +102,7 @@ Vrms = 2 V</string>
   <widget class="DynamicLabel" name="meas_4_dlbl">
    <property name="geometry">
     <rect>
-     <x>800</x>
+     <x>750</x>
      <y>0</y>
      <width>91</width>
      <height>51</height>
@@ -156,6 +115,11 @@ Vrms = 2 V</string>
   </widget>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>MultButton</class>
+   <extends>QPushButton</extends>
+   <header>multbutton</header>
+  </customwidget>
   <customwidget>
    <class>DynamicLabel</class>
    <extends>QLabel</extends>

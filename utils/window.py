@@ -60,13 +60,14 @@ class ControlPane(BaseWidget):
         # TODO: cover all mbtns
         self.ui.run_stop_mbtn.init([
                 {'index'     : 0,
-                 'state_name': 'run',
-                 'stylesheet': 'background-color: green;',
-                 'text'      : self.ui.run_stop_mbtn.text()},
-                {'index'     : 1,
                  'state_name': 'stop',
                  'stylesheet': 'background-color: red;',
+                 'text'      : self.ui.run_stop_mbtn.text()},
+                 {'index'     : 1,
+                 'state_name': 'run',
+                 'stylesheet': 'background-color: green;',
                  'text'      : self.ui.run_stop_mbtn.text()}])
+        self.ui.run_stop_mbtn.set_state(1)
         self.ui.v_coupling_mbtn.init([
                 {'index'     : 0,
                  'state_name': 'dc',
@@ -78,20 +79,24 @@ class ControlPane(BaseWidget):
                  'text'      : 'AC'}])
         self.ui.fft_vscale_mbtn.init([
                 {'index'     : 0,
-                 'state_name': 'db',
+                 'state_name': 'dbv',
                  'stylesheet': '',
-                 'text'      : 'dB'},
+                 'text'      : Channel.DBV},
                 {'index'     : 1,
                  'state_name': 'vrms',
                  'stylesheet': '',
-                 'text'      : 'Vrms'}])
+                 'text'      : Channel.VRMS}])
 
     def init_cboxes(self):
         """ Inits the QComboBoxes """
 
         # TODO: cover all cboxes
-        self.ui.fft_window_cbox.addItems(['Hamming', 'Hann', 'Rect'])   # Optional add-on: Blackman, Flattop
-        self.ui.measure_type_cbox.addItems(['Max', 'Min', 'RMS'])   # Optional add-on: Blackman, Flattop
+        self.ui.fft_window_cbox.addItems([Channel.HAMMING,
+                                          Channel.HANN,
+                                          Channel.RECT])   # Optional add-on: Blackman, Flattop
+        self.ui.measure_type_cbox.addItems([Measurement.MAX,
+                                            Measurement.MIN,
+                                            Measurement.RMS])   # Optional add-on: Blackman, Flattop
 
     def init_dslds(self):
         """ Inits the DiscreteSliders """
@@ -142,7 +147,8 @@ class WaveCanvas(pg.PlotWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.name = 'wave_pane'
-        self.lines = []
+        self.lines:list[pg.PlotDataItem] = []
+        self.fft_view:pg.ViewBox = None
         self.init_ui()
 
     def init_ui(self):
@@ -154,11 +160,34 @@ class WaveCanvas(pg.PlotWidget):
         """ Adds a line in plot to represent added channel """
 
         pen = pg.mkPen(color=chn.color, width=3)
-        line = self.plot(np.arange(len(chn)), np.zeros(len(chn)), pen=pen)
+        if not chn.is_fft:
+            line = self.plot(np.arange(len(chn)), np.zeros(len(chn)), pen=pen)
+        else:
+            if self.fft_view is None:
+                self.add_viewbox()
+            line = pg.PlotDataItem(np.arange(len(chn)), np.zeros(len(chn)), pen=pen)
+            self.fft_view.addItem(line)
         self.lines.append(line)
 
     def update(self, line_idx:int, data:np.ndarray):
         self.lines[line_idx].setData(np.arange(len(data)), data)
+
+    def add_viewbox(self):
+        pi = self.getPlotItem()
+        self.fft_view = pg.ViewBox()
+        self.fft_view.setXLink(pi.vb)
+        pi.showAxis('right')
+        right_axis = pi.getAxis('right')
+        right_axis.setPen(pg.mkPen('w'))
+        right_axis.linkToView(self.fft_view)
+        pi.scene().addItem(self.fft_view)
+
+        def update_views():
+            self.fft_view.setGeometry(pi.vb.sceneBoundingRect())
+            self.fft_view.linkedViewChanged(pi.vb, self.fft_view.XAxis)
+        
+        pi.vb.sigResized.connect(update_views)
+        update_views()
 
 class StatusBar(BaseWidget):
     def __init__(self, parent=None):
@@ -182,8 +211,25 @@ class StatusBar(BaseWidget):
     def init_mbtns(self):
         """ Inits the MultButtons """
 
-        # TODO: cover all mbtns
-        pass
+        self.ui.ch1_mbtn.init([
+                {'index'     : 0,
+                 'state_name': 'off',
+                 'stylesheet': 'background-color: none',
+                 'text'      : self.ui.ch1_mbtn.text()},
+                {'index'     : 1,
+                 'state_name': 'on',
+                 'stylesheet': 'background-color: rgb(236, 252, 32)',
+                 'text'      : self.ui.ch1_mbtn.text()}])
+        self.ui.ch1_mbtn.set_state(1)
+        self.ui.fft_mbtn.init([
+                {'index'     : 0,
+                 'state_name': 'off',
+                 'stylesheet': 'background-color: none',
+                 'text'      : self.ui.fft_mbtn.text()},
+                {'index'     : 1,
+                 'state_name': 'on',
+                 'stylesheet': 'background-color: rgb(13, 215, 230)',
+                 'text'      : self.ui.fft_mbtn.text()}])
 
 class MainWindow(BaseWidget):
     """ All subsystems are connected together in the main window. """
@@ -214,39 +260,69 @@ class MainWindow(BaseWidget):
         self.add_simple_channel('Channel 1', self.arduino.chn_1_serial_input)
         self.set_trig_src()
 
+        # Default not show FFT
+        self.add_fft_channel(self.channels[0], Channel.DBV, Channel.HAMMING,
+                             5000, 2000)
+        self.ctrl_pane.ui.fft_vscale_mbtn.clicked.connect(self.set_fft_vscale)
+        self.ctrl_pane.ui.fft_window_cbox.currentTextChanged.connect(self.set_fft_window)
+        self.toggle_channel_on_off(1, False)
 
+        self.ctrl_pane.ui.run_stop_mbtn.clicked.connect(
+            lambda: self.toggle_run_stop(self.ctrl_pane.ui.run_stop_mbtn.state['index']))
+        self.stat_bar.ui.ch1_mbtn.clicked.connect(
+            lambda: self.toggle_channel_on_off(0, self.stat_bar.ui.ch1_mbtn.state['index']))
+        self.stat_bar.ui.fft_mbtn.clicked.connect(
+            lambda: self.toggle_channel_on_off(1, self.stat_bar.ui.fft_mbtn.state['index']))
 
-        # chn1 = Channel()
-        # chn1.name = 'Channel 1'
-        # self.ctrl_pane.ui.measure_src_cbox.addItem(chn1.name)
-        # # chn1.set_length(500)
-        # chn1.set_sampling_period(1/50_000)
-        # chn1.init_fft(scale='dBV',         # or 'Vrms'
-        #     window='Hamming',    # 'Hamming' | 'Hann' | 'Rect'
-        #     span=5_000,          # 5 kHz displayed bandwidth
-        #     center=2_000,        # centred at 2 kHz
-        #     fft_size=2048        # any power-of-two ≥ 128
-        # )
-        # # chn1.trig_mode = Channel.RISE
-        # chn1.frame_ready.connect(
-        #     lambda val: self.wave_pane.update(val))
-        # # self.ctrl_pane.ui.trig_pretrg_sbox.valueChanged.connect(
-        #     # lambda val: chn1.set_pretrg(val))
-        # chn1.init_source(self.arduino.chn_1_serial_input)
-        # self.channels.append(chn1)
-        # self.ctrl_pane.ui.measure_add_btn.clicked.connect(
-        #     self.add_measurement
-        # )
+    def toggle_channel_on_off(self, chn_idx:int, on_off:bool):
+        """ Deactivates a channel and hides its line """
+
+        if self.ctrl_pane.ui.run_stop_mbtn.state['index']:
+            self.channels[chn_idx].set_active(on_off)
+        if on_off:
+            self.wave_pane.lines[chn_idx].show()
+        else:
+            self.wave_pane.lines[chn_idx].hide()
+
+    def toggle_run_stop(self, run_stop:bool):
+        """ Deactivates all channels but do not hide their line """
+
+        for chn in self.channels:
+            chn.set_active(run_stop)
+
+    def add_simple_channel(self, chn_name:str, src:SignalInstance):
+        """ Sets up and appends a simple channel to self.channels.
+        
+        :param chn_name: (str) either 'Channel 1' or 'Channel 2'.
+        """
+
+        chns_count = len(self.channels)
+        chn = Channel()
+        chn.name = chn_name
+        if chn_name == 'Channel 1':
+            chn.color = np.array([236, 252, 32, 180])
+        elif chn_name == 'Channel 2':
+            chn.color = np.array([61, 222, 57, 180])
+        chn.set_length(self.DEFAULT_SIMPLE_CHANNEL_LENGTH)
+        chn.trig_mode = chn.NONE
+        self.wave_pane.add_channel(chn)
+        chn.frame_ready.connect(
+            lambda val: self.wave_pane.update(chns_count, val))
+        chn.init_source(src)
+        self.channels.append(chn)
 
     def add_fft_channel(self, source_chn:Channel, scale, window, span, centre, fft_size=2048):
         """ Inits an FFT channel from a source channel. """
+
+        chns_count = len(self.channels)
         chn = Channel()
         chn.name = 'FFT'
-        chn.init_fft(scale=scale, window=window, span=span,
+        chn.color = np.array([13, 215, 230, 180])
+        chn.init_fft(vscale=scale, window=window, span=span,
                      center=centre, fft_size=fft_size)
         self.wave_pane.add_channel(chn)
         chn.frame_ready.connect(
-            lambda val: self.wave_pane.update(len(self.channels), val))
+            lambda val: self.wave_pane.update(chns_count, val))
         chn.init_source(source_chn.source)
         self.channels.append(chn)
 
@@ -271,30 +347,17 @@ class MainWindow(BaseWidget):
         self.ctrl_pane.ui.trig_pretrg_sbox.valueChanged.connect(
             lambda val: self.channels[new_chn_idx].set_pretrg(val))
 
-    def add_simple_channel(self, chn_name:str, src:SignalInstance):
-        """ Sets up and appends a simple channel to self.channels.
-        
-        :param chn_name: (str) either 'Channel 1' or 'Channel 2'.
-        """
+    def set_fft_vscale(self):
+        new_vscale_idx = self.ctrl_pane.ui.fft_vscale_mbtn.state['index']
+        fft_chn = next(chn for chn in self.channels if chn.name == 'FFT')
+        fft_chn.fft_vscale = (fft_chn.DBV, fft_chn.VRMS)[new_vscale_idx]
 
-        chns_count = len(self.channels)
-        chn = Channel()
-        chn.name = chn_name
-        if chn_name == 'Channel 1':
-            chn.color = np.array([236, 252, 32, 180])
-        elif chn_name == 'Channel 2':
-            chn.color = np.array([61, 222, 57, 180])
-        chn.set_length(self.DEFAULT_SIMPLE_CHANNEL_LENGTH)
-        chn.trig_mode = chn.NONE
-        self.wave_pane.add_channel(chn)
-        chn.frame_ready.connect(
-            lambda val: self.wave_pane.update(chns_count, val))
-        chn.init_source(src)
-        self.channels.append(chn)
+    def set_fft_window(self, new_window:str):
+        fft_chn = next(chn for chn in self.channels if chn.name == 'FFT')
+        fft_chn.set_fft_window(new_window)
 
     def add_measurement(self):
         src_chn_name = self.ctrl_pane.ui.measure_src_cbox.currentText()
-        # breakpoint()
         src_chn = next(chn for chn in self.channels if chn.name == src_chn_name)
         meas_type = self.ctrl_pane.ui.measure_type_cbox.currentText()
         measurement = Measurement()
