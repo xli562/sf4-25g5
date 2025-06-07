@@ -26,7 +26,7 @@
    <property name="geometry">
     <rect>
      <x>100</x>
-     <y>1</y>
+     <y>0</y>
      <width>95</width>
      <height>30</height>
     </rect>
@@ -39,7 +39,7 @@
    <property name="geometry">
     <rect>
      <x>280</x>
-     <y>1</y>
+     <y>0</y>
      <width>75</width>
      <height>49</height>
     </rect>
@@ -53,7 +53,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>100</y>
+     <y>120</y>
      <width>111</width>
      <height>21</height>
     </rect>
@@ -66,7 +66,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>130</y>
+     <y>150</y>
      <width>81</width>
      <height>21</height>
     </rect>
@@ -86,7 +86,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>152</y>
+     <y>172</y>
      <width>301</width>
      <height>20</height>
     </rect>
@@ -102,8 +102,8 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>180</y>
-     <width>41</width>
+     <y>200</y>
+     <width>61</width>
      <height>21</height>
     </rect>
    </property>
@@ -115,7 +115,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>202</y>
+     <y>222</y>
      <width>301</width>
      <height>20</height>
     </rect>
@@ -134,7 +134,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>80</x>
-     <y>180</y>
+     <y>200</y>
      <width>51</width>
      <height>20</height>
     </rect>
@@ -147,7 +147,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>230</y>
+     <y>250</y>
      <width>81</width>
      <height>21</height>
     </rect>
@@ -156,24 +156,11 @@ setup</string>
     <string>[] Vertical</string>
    </property>
   </widget>
-  <widget class="MultButton" name="v_src_mbtn">
-   <property name="geometry">
-    <rect>
-     <x>90</x>
-     <y>227</y>
-     <width>101</width>
-     <height>30</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Channel 1</string>
-   </property>
-  </widget>
   <widget class="QLabel" name="label_5">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>260</y>
+     <y>280</y>
      <width>111</width>
      <height>21</height>
     </rect>
@@ -186,7 +173,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>80</x>
-     <y>310</y>
+     <y>330</y>
      <width>51</width>
      <height>20</height>
     </rect>
@@ -199,7 +186,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>332</y>
+     <y>352</y>
      <width>301</width>
      <height>20</height>
     </rect>
@@ -218,7 +205,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>282</y>
+     <y>302</y>
      <width>301</width>
      <height>20</height>
     </rect>
@@ -234,8 +221,8 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>310</y>
-     <width>51</width>
+     <y>330</y>
+     <width>61</width>
      <height>21</height>
     </rect>
    </property>
@@ -247,7 +234,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>140</x>
-     <y>310</y>
+     <y>330</y>
      <width>41</width>
      <height>20</height>
     </rect>
@@ -260,7 +247,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>360</y>
+     <y>380</y>
      <width>61</width>
      <height>21</height>
     </rect>
@@ -273,7 +260,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>510</y>
+     <y>480</y>
      <width>81</width>
      <height>21</height>
     </rect>
@@ -286,7 +273,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>540</y>
+     <y>510</y>
      <width>41</width>
      <height>21</height>
     </rect>
@@ -299,7 +286,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>140</x>
-     <y>540</y>
+     <y>510</y>
      <width>61</width>
      <height>25</height>
     </rect>
@@ -312,7 +299,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>210</x>
-     <y>540</y>
+     <y>510</y>
      <width>31</width>
      <height>25</height>
     </rect>
@@ -325,7 +312,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>250</x>
-     <y>540</y>
+     <y>510</y>
      <width>31</width>
      <height>25</height>
     </rect>
@@ -338,7 +325,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>290</x>
-     <y>540</y>
+     <y>510</y>
      <width>61</width>
      <height>25</height>
     </rect>
@@ -351,7 +338,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>70</x>
-     <y>540</y>
+     <y>510</y>
      <width>61</width>
      <height>25</height>
     </rect>
@@ -364,7 +351,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>570</y>
+     <y>540</y>
      <width>81</width>
      <height>21</height>
     </rect>
@@ -377,13 +364,16 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>590</y>
+     <y>560</y>
      <width>301</width>
      <height>20</height>
     </rect>
    </property>
+   <property name="minimum">
+    <number>-100</number>
+   </property>
    <property name="maximum">
-    <number>359</number>
+    <number>100</number>
    </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
@@ -393,20 +383,26 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>110</x>
-     <y>570</y>
+     <y>540</y>
      <width>61</width>
      <height>25</height>
     </rect>
    </property>
+   <property name="minimum">
+    <double>-1.000000000000000</double>
+   </property>
    <property name="maximum">
     <double>1.000000000000000</double>
+   </property>
+   <property name="singleStep">
+    <double>0.010000000000000</double>
    </property>
   </widget>
   <widget class="QDoubleSpinBox" name="trig_pretrg_sbox">
    <property name="geometry">
     <rect>
      <x>120</x>
-     <y>620</y>
+     <y>590</y>
      <width>61</width>
      <height>25</height>
     </rect>
@@ -422,7 +418,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>620</y>
+     <y>590</y>
      <width>91</width>
      <height>21</height>
     </rect>
@@ -435,7 +431,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>640</y>
+     <y>610</y>
      <width>301</width>
      <height>20</height>
     </rect>
@@ -447,24 +443,11 @@ setup</string>
     <enum>Qt::Horizontal</enum>
    </property>
   </widget>
-  <widget class="MultButton" name="fft_src_mbtn">
-   <property name="geometry">
-    <rect>
-     <x>110</x>
-     <y>390</y>
-     <width>61</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Chn. 1</string>
-   </property>
-  </widget>
   <widget class="MultButton" name="fft_vscale_mbtn">
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>420</y>
+     <y>440</y>
      <width>61</width>
      <height>25</height>
     </rect>
@@ -477,7 +460,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>70</x>
-     <y>390</y>
+     <y>410</y>
      <width>31</width>
      <height>20</height>
     </rect>
@@ -490,7 +473,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>390</y>
+     <y>410</y>
      <width>41</width>
      <height>21</height>
     </rect>
@@ -503,7 +486,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>230</x>
-     <y>420</y>
+     <y>440</y>
      <width>51</width>
      <height>25</height>
     </rect>
@@ -513,7 +496,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>230</x>
-     <y>395</y>
+     <y>415</y>
      <width>51</width>
      <height>25</height>
     </rect>
@@ -526,7 +509,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>290</x>
-     <y>395</y>
+     <y>415</y>
      <width>61</width>
      <height>25</height>
     </rect>
@@ -539,82 +522,17 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>290</x>
-     <y>420</y>
+     <y>440</y>
      <width>51</width>
      <height>25</height>
     </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_15">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>450</y>
-     <width>91</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>arithmetic</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="arith_addch_btn">
-   <property name="geometry">
-    <rect>
-     <x>110</x>
-     <y>450</y>
-     <width>31</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>+</string>
-   </property>
-  </widget>
-  <widget class="MultButton" name="arith_src1_mbtn">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>480</y>
-     <width>61</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Chn. 1</string>
-   </property>
-  </widget>
-  <widget class="MultButton" name="arith_op_mbtn">
-   <property name="geometry">
-    <rect>
-     <x>100</x>
-     <y>480</y>
-     <width>31</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>+</string>
-   </property>
-  </widget>
-  <widget class="MultButton" name="arith_src2_mbtn">
-   <property name="geometry">
-    <rect>
-     <x>140</x>
-     <y>480</y>
-     <width>61</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Chn. 1</string>
    </property>
   </widget>
   <widget class="DynamicLabel" name="hscale_dlbl">
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>130</y>
+     <y>150</y>
      <width>111</width>
      <height>21</height>
     </rect>
@@ -630,7 +548,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>260</y>
+     <y>280</y>
      <width>111</width>
      <height>21</height>
     </rect>
@@ -642,24 +560,11 @@ setup</string>
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
-  <widget class="QLabel" name="label_20">
-   <property name="geometry">
-    <rect>
-     <x>90</x>
-     <y>360</y>
-     <width>191</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Maximum 3 channels!</string>
-   </property>
-  </widget>
   <widget class="QLabel" name="label_16">
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>40</y>
+     <y>50</y>
      <width>101</width>
      <height>21</height>
     </rect>
@@ -668,24 +573,11 @@ setup</string>
     <string>[] Measure</string>
    </property>
   </widget>
-  <widget class="MultButton" name="trig_src_mbtn">
-   <property name="geometry">
-    <rect>
-     <x>90</x>
-     <y>510</y>
-     <width>71</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Chn. 1</string>
-   </property>
-  </widget>
   <widget class="MultButton" name="run_stop_mbtn">
    <property name="geometry">
     <rect>
      <x>1</x>
-     <y>1</y>
+     <y>0</y>
      <width>95</width>
      <height>30</height>
     </rect>
@@ -698,7 +590,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>200</x>
-     <y>1</y>
+     <y>0</y>
      <width>65</width>
      <height>30</height>
     </rect>
@@ -711,7 +603,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>120</x>
-     <y>100</y>
+     <y>120</y>
      <width>90</width>
      <height>25</height>
     </rect>
@@ -724,7 +616,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>65</y>
+     <y>75</y>
      <width>131</width>
      <height>30</height>
     </rect>
@@ -740,7 +632,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>160</x>
-     <y>65</y>
+     <y>75</y>
      <width>111</width>
      <height>30</height>
     </rect>
@@ -753,7 +645,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>100</x>
-     <y>420</y>
+     <y>440</y>
      <width>120</width>
      <height>25</height>
     </rect>
@@ -766,7 +658,7 @@ setup</string>
    <property name="geometry">
     <rect>
      <x>100</x>
-     <y>40</y>
+     <y>50</y>
      <width>31</width>
      <height>20</height>
     </rect>
@@ -805,27 +697,20 @@ setup</string>
   <tabstop>hscale_dsld</tabstop>
   <tabstop>hoffset_sld</tabstop>
   <tabstop>h_offset_zero_btn</tabstop>
-  <tabstop>v_src_mbtn</tabstop>
   <tabstop>vscale_dsld</tabstop>
   <tabstop>voffset_sld</tabstop>
   <tabstop>v_offset_zero_btn</tabstop>
   <tabstop>v_coupling_mbtn</tabstop>
-  <tabstop>fft_src_mbtn</tabstop>
   <tabstop>fft_vscale_mbtn</tabstop>
   <tabstop>fft_window_cbox</tabstop>
   <tabstop>fft_span_sbox</tabstop>
   <tabstop>fft_ctr_sbox</tabstop>
   <tabstop>fft_addch_btn</tabstop>
-  <tabstop>arith_src1_mbtn</tabstop>
-  <tabstop>arith_op_mbtn</tabstop>
-  <tabstop>arith_src2_mbtn</tabstop>
-  <tabstop>arith_addch_btn</tabstop>
   <tabstop>trig_type_sing_btn</tabstop>
   <tabstop>trig_type_none_btn</tabstop>
   <tabstop>trig_type_rise_btn</tabstop>
   <tabstop>trig_type_fall_btn</tabstop>
   <tabstop>trig_type_risefall_btn</tabstop>
-  <tabstop>trig_src_mbtn</tabstop>
   <tabstop>trig_threshold_sld</tabstop>
   <tabstop>trig_threshold_sbox</tabstop>
   <tabstop>trig_pretrg_sld</tabstop>

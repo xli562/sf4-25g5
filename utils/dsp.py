@@ -87,13 +87,23 @@ class Channel(QObject):
         self._post_len   = self._len - int(self._len * self.pretrg)
         self._lookahead  = deque(maxlen=self._len + self._post_len)
 
+    def set_trig_mode(self, new_trig_mode_idx:int):
+        """ Set trig mode to corresponding QPushButton in
+        ctrl_pane.trig_btngrp with id == new_trig_mode_idx """
+
+        options = (self.SINGLE, self.NONE, self.RISE, 
+                   self.FALL, self.RISE_FALL)
+        self.trig_mode = options[new_trig_mode_idx]
+
     def set_pretrg(self, new_pretrg):
         self.pretrg = new_pretrg
         self._post_len   = self._len - int(self._len * self.pretrg)
         self._lookahead  = deque(maxlen=self._len + self._post_len)
 
-    def set_threshold(self, new_threshold):
-        self.trig_threshold = new_threshold
+    def set_trig_threshold_percentage(self, new_threshold_percentage):
+        # TODO: new_threshold_percentage should be percentage of channel's
+        # current range (volts / div), not a fixed value.
+        self.trig_threshold = 5 * new_threshold_percentage
 
     def set_sampling_period(self, new_t_s: float) -> None:
         """Set ADC sampling interval in seconds (constant for all channels)."""

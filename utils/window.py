@@ -67,15 +67,6 @@ class ControlPane(BaseWidget):
                  'state_name': 'stop',
                  'stylesheet': 'background-color: red;',
                  'text'      : self.ui.run_stop_mbtn.text()}])
-        self.ui.v_src_mbtn.init([
-                {'index'     : 0,
-                 'state_name': 'ch1',
-                 'stylesheet': '',
-                 'text'      : 'Channel 1'},
-                {'index'     : 1,
-                 'state_name': 'ch2',
-                 'stylesheet': '',
-                 'text'      : 'Channel 2'}])
         self.ui.v_coupling_mbtn.init([
                 {'index'     : 0,
                  'state_name': 'dc',
@@ -85,15 +76,6 @@ class ControlPane(BaseWidget):
                  'state_name': 'ac',
                  'stylesheet': '',
                  'text'      : 'AC'}])
-        self.ui.fft_src_mbtn.init([
-                {'index'     : 0,
-                 'state_name': 'ch1',
-                 'stylesheet': '',
-                 'text'      : 'Chn. 1'},
-                {'index'     : 1,
-                 'state_name': 'ch2',
-                 'stylesheet': '',
-                 'text'      : 'Chn. 2'}])
         self.ui.fft_vscale_mbtn.init([
                 {'index'     : 0,
                  'state_name': 'db',
@@ -103,50 +85,6 @@ class ControlPane(BaseWidget):
                  'state_name': 'vrms',
                  'stylesheet': '',
                  'text'      : 'Vrms'}])
-        self.ui.arith_src1_mbtn.init([
-                {'index'     : 0,
-                 'state_name': 'ch1',
-                 'stylesheet': '',
-                 'text'      : 'Chn. 1'},
-                {'index'     : 1,
-                 'state_name': 'ch2',
-                 'stylesheet': '',
-                 'text'      : 'Chn. 2'}])
-        self.ui.arith_src2_mbtn.init([
-                {'index'     : 0,
-                 'state_name': 'ch1',
-                 'stylesheet': '',
-                 'text'      : 'Chn. 1'},
-                {'index'     : 1,
-                 'state_name': 'ch2',
-                 'stylesheet': '',
-                 'text'      : 'Chn. 2'}])
-        self.ui.arith_op_mbtn.init([
-                {'index'     : 0,
-                 'state_name': 'add',
-                 'stylesheet': '',
-                 'text'      : '+'},
-                {'index'     : 1,
-                 'state_name': 'sub',
-                 'stylesheet': '',
-                 'text'      : '-'},
-                 {'index'     : 2,
-                 'state_name': 'mul',
-                 'stylesheet': '',
-                 'text'      : 'x'},
-                 {'index'     : 3,
-                 'state_name': 'div',
-                 'stylesheet': '',
-                 'text'      : '/'}])
-        self.ui.trig_src_mbtn.init([
-                {'index'     : 0,
-                 'state_name': 'ch1',
-                 'stylesheet': '',
-                 'text'      : 'Chn. 1'},
-                {'index'     : 1,
-                 'state_name': 'ch2',
-                 'stylesheet': '',
-                 'text'      : 'Chn. 2'}])
 
     def init_cboxes(self):
         """ Inits the QComboBoxes """
@@ -176,11 +114,14 @@ class ControlPane(BaseWidget):
         """ Init button groups """
 
         self.trig_btngrp = QButtonGroup(self.ui)
-        self.trig_btngrp.addButton(self.ui.trig_type_sing_btn)
-        self.trig_btngrp.addButton(self.ui.trig_type_none_btn)
-        self.trig_btngrp.addButton(self.ui.trig_type_rise_btn)
-        self.trig_btngrp.addButton(self.ui.trig_type_fall_btn)
-        self.trig_btngrp.addButton(self.ui.trig_type_risefall_btn)
+        self.trig_btngrp.setExclusive(True)
+        self.trig_btngrp.addButton(self.ui.trig_type_sing_btn, 0)
+        self.trig_btngrp.addButton(self.ui.trig_type_none_btn, 1)
+        self.trig_btngrp.addButton(self.ui.trig_type_rise_btn, 2)
+        self.trig_btngrp.addButton(self.ui.trig_type_fall_btn, 3)
+        self.trig_btngrp.addButton(self.ui.trig_type_risefall_btn, 4)
+        for btn in self.trig_btngrp.buttons():
+            btn.setCheckable(True)
         self.ui.trig_type_none_btn.setChecked(True)
 
     def init_connections(self):
@@ -188,6 +129,10 @@ class ControlPane(BaseWidget):
             lambda val: self.ui.hscale_dlbl.update_unit(val))
         self.ui.vscale_dsld.snapped.connect(
             lambda val: self.ui.vscale_dlbl.update_unit(val))
+        self.ui.trig_threshold_sld.valueChanged.connect(
+            lambda val: self.ui.trig_threshold_sbox.setValue(round(val/100, 2)))
+        self.ui.trig_threshold_sbox.valueChanged.connect(
+            lambda val: self.ui.trig_threshold_sld.setValue(int(val*100)))
         self.ui.trig_pretrg_sld.valueChanged.connect(
             lambda val: self.ui.trig_pretrg_sbox.setValue(round(val/100, 2)))
         self.ui.trig_pretrg_sbox.valueChanged.connect(
@@ -265,8 +210,11 @@ class MainWindow(BaseWidget):
 
         self.arduino = Arduino()
         self.arduino.start()
-
+        # Init channel 1 by default
         self.add_simple_channel('Channel 1', self.arduino.chn_1_serial_input)
+        self.set_trig_src()
+
+
 
         # chn1 = Channel()
         # chn1.name = 'Channel 1'
@@ -302,6 +250,27 @@ class MainWindow(BaseWidget):
         chn.init_source(source_chn.source)
         self.channels.append(chn)
 
+    def set_trig_src(self):
+        """ Changes source channel for trigger control """
+
+        # For two channels:
+        # new_chn_idx = self.ctrl_pane.ui.trig_src_mbtn.state['index']
+        new_chn_idx = 0
+        self.ctrl_pane.trig_btngrp.idToggled.disconnect()
+        self.ctrl_pane.ui.trig_threshold_sbox.valueChanged.disconnect()
+        self.ctrl_pane.ui.trig_threshold_sbox.valueChanged.connect(
+            lambda val: self.ctrl_pane.ui.trig_threshold_sld.setValue(int(val*100)))
+        self.ctrl_pane.ui.trig_pretrg_sbox.valueChanged.disconnect()
+        self.ctrl_pane.ui.trig_pretrg_sbox.valueChanged.connect(
+            lambda val: self.ctrl_pane.ui.trig_pretrg_sld.setValue(int(val*100)))
+
+        self.ctrl_pane.trig_btngrp.idToggled.connect(
+            lambda id, _: self.channels[new_chn_idx].set_trig_mode(id))
+        self.ctrl_pane.ui.trig_threshold_sbox.valueChanged.connect(
+            lambda val: self.channels[new_chn_idx].set_trig_threshold_percentage(val))
+        self.ctrl_pane.ui.trig_pretrg_sbox.valueChanged.connect(
+            lambda val: self.channels[new_chn_idx].set_pretrg(val))
+
     def add_simple_channel(self, chn_name:str, src:SignalInstance):
         """ Sets up and appends a simple channel to self.channels.
         
@@ -316,7 +285,7 @@ class MainWindow(BaseWidget):
         elif chn_name == 'Channel 2':
             chn.color = np.array([61, 222, 57, 180])
         chn.set_length(self.DEFAULT_SIMPLE_CHANNEL_LENGTH)
-        chn.trig_mode = chn.RISE
+        chn.trig_mode = chn.NONE
         self.wave_pane.add_channel(chn)
         chn.frame_ready.connect(
             lambda val: self.wave_pane.update(chns_count, val))

@@ -23,6 +23,8 @@ venv/
 scratch/
 scratch/**
 debug*
+old/
+future/
 
 # Reference outputs
 references*
