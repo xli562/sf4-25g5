@@ -32,8 +32,8 @@ class Arduino(QThread):
             interval = random.uniform(0.00005, 0.0005)
             time.sleep(interval)
             chunk_size = random.randint(1, 5)
-            # data = [np.sin(t/20) for t in np.arange(x, x + chunk_size)]
-            data = [0.1*t*np.sin(t/20) for t in np.arange(x, x + chunk_size)]
+            data = [np.sin(t/2) for t in np.arange(x, x + chunk_size)]
+            # data = [0.1*t*np.sin(t/20) for t in np.arange(x, x + chunk_size)]
             # data = [np.sin(t) + np.sin(t/20) for t in np.arange(x, x + chunk_size)]
             self.chn_1_serial_input.emit(data)
             # logger.debug(data)

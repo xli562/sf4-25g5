@@ -96,7 +96,7 @@ Ch1</string>
    </property>
    <property name="text">
     <string>FFT
-Ch1 + Ch2</string>
+Ch3</string>
    </property>
   </widget>
   <widget class="DynamicLabel" name="meas_2_dlbl">

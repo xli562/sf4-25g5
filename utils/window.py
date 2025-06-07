@@ -264,12 +264,19 @@ class MainWindow(BaseWidget):
         chn1 = Channel()
         chn1.name = 'Channel 1'
         self.ctrl_pane.ui.measure_src_cbox.addItem(chn1.name)
-        chn1.set_length(500)
-        chn1.trig_mode = Channel.RISE
+        # chn1.set_length(500)
+        chn1.set_sampling_period(1/50_000)
+        chn1.init_fft(scale='dBV',         # or 'Vrms'
+            window='Hamming',    # 'Hamming' | 'Hann' | 'Rect'
+            span=5_000,          # 5 kHz displayed bandwidth
+            center=2_000,        # centred at 2 kHz
+            fft_size=2048        # any power-of-two ≥ 128
+        )
+        # chn1.trig_mode = Channel.RISE
         chn1.frame_ready.connect(
             lambda val: self.wave_pane.update(val))
-        self.ctrl_pane.ui.trig_pretrg_sbox.valueChanged.connect(
-            lambda val: chn1.set_pretrg(val))
+        # self.ctrl_pane.ui.trig_pretrg_sbox.valueChanged.connect(
+            # lambda val: chn1.set_pretrg(val))
         chn1.init_source(self.arduino.chn_1_serial_input)
         self.chns.append(chn1)
         self.ctrl_pane.ui.measure_add_btn.clicked.connect(
