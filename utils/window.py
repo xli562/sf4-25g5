@@ -257,7 +257,7 @@ class MainWindow(BaseWidget):
         self.arduino = Arduino()
         self.arduino.start()
         # Init channel 1 by default
-        self.add_simple_channel('Channel 1', self.arduino.chn_1_serial_input)
+        self.add_simple_channel('Channel 1', self.arduino.chn_1_demo_serial_input)
         self.set_trig_src()
 
         # Default not show FFT
@@ -265,20 +265,18 @@ class MainWindow(BaseWidget):
                              5000, 2000)
         self.ctrl_pane.ui.fft_vscale_mbtn.clicked.connect(self.set_fft_vscale)
         self.ctrl_pane.ui.fft_window_cbox.currentTextChanged.connect(self.set_fft_window)
-        self.toggle_channel_on_off(1, False)
+        self.toggle_channel_visibility(1, False)
 
         self.ctrl_pane.ui.run_stop_mbtn.clicked.connect(
             lambda: self.toggle_run_stop(self.ctrl_pane.ui.run_stop_mbtn.state['index']))
         self.stat_bar.ui.ch1_mbtn.clicked.connect(
-            lambda: self.toggle_channel_on_off(0, self.stat_bar.ui.ch1_mbtn.state['index']))
+            lambda: self.toggle_channel_visibility(0, self.stat_bar.ui.ch1_mbtn.state['index']))
         self.stat_bar.ui.fft_mbtn.clicked.connect(
-            lambda: self.toggle_channel_on_off(1, self.stat_bar.ui.fft_mbtn.state['index']))
+            lambda: self.toggle_channel_visibility(1, self.stat_bar.ui.fft_mbtn.state['index']))
 
-    def toggle_channel_on_off(self, chn_idx:int, on_off:bool):
-        """ Deactivates a channel and hides its line """
+    def toggle_channel_visibility(self, chn_idx:int, on_off:bool):
+        """ Show / hides its line """
 
-        if self.ctrl_pane.ui.run_stop_mbtn.state['index']:
-            self.channels[chn_idx].set_active(on_off)
         if on_off:
             self.wave_pane.lines[chn_idx].show()
         else:
