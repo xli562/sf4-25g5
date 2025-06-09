@@ -186,6 +186,7 @@ class StatusBar(BaseWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.name = 'stat_bar'
+        self.measurements = []
         self.init_ui()
     
     def init_ui(self):
@@ -200,6 +201,10 @@ class StatusBar(BaseWidget):
         self.ui.meas_2_dlbl.init(['Ch_', '_', '2', 'm', 'V'], '{}\n{} = {} {}{}', 2, 3)
         self.ui.meas_3_dlbl.init(['Ch_', '_', '2', 'm', 'V'], '{}\n{} = {} {}{}', 2, 3)
         self.ui.meas_4_dlbl.init(['Ch_', '_', '2', 'm', 'V'], '{}\n{} = {} {}{}', 2, 3)
+        self.dlbls:list[DynamicLabel] = [self.ui.meas_1_dlbl,
+                                         self.ui.meas_2_dlbl,
+                                         self.ui.meas_3_dlbl,
+                                         self.ui.meas_4_dlbl]
 
     def init_mbtns(self):
         """ Inits the MultButtons """
@@ -223,6 +228,16 @@ class StatusBar(BaseWidget):
                  'state_name': 'on',
                  'stylesheet': 'background-color: rgb(13, 215, 230)',
                  'text'      : self.ui.fft_mbtn.text()}])
+
+    def add_measurement(self, src_chn:Channel, meas_type:str, 
+                        dynamic_texts:list):
+        curr_meas_count = len(self.measurements)
+        measurement = Measurement()
+        measurement.init(src_chn, meas_type)
+        self.dlbls[curr_meas_count].dynamic_texts = dynamic_texts
+        measurement.meas_ready.connect(
+            lambda val: self.dlbls[curr_meas_count].update_unit(val))
+        self.measurements.append(measurement)
 
 class MainWindow(BaseWidget):
     """ All subsystems are connected together in the main window. """
@@ -253,6 +268,7 @@ class MainWindow(BaseWidget):
         self.add_simple_channel('Channel 1', self.arduino.serial_data)
         self.set_trig_src()
         self.set_hscale_src()
+        self.set_vscale_src()
 
         # Default not show FFT
         self.add_fft_channel(self.channels[0], Channel.DBV, Channel.HAMMING,
@@ -267,7 +283,7 @@ class MainWindow(BaseWidget):
             lambda: self.toggle_channel_visibility(0, self.stat_bar.ui.ch1_mbtn.state['index']))
         self.stat_bar.ui.fft_mbtn.clicked.connect(
             lambda: self.toggle_channel_visibility(1, self.stat_bar.ui.fft_mbtn.state['index']))
-
+        self.ctrl_pane.ui.measure_add_btn.clicked.connect(self.add_measurement)
 
     def toggle_channel_visibility(self, chn_idx:int, on_off:bool):
         """ Show / hides its line """
@@ -304,6 +320,7 @@ class MainWindow(BaseWidget):
             lambda val: self.wave_pane.update(chns_count, val))
         chn.init_source(src)
         self.channels.append(chn)
+        self.ctrl_pane.ui.measure_src_cbox.addItem(chn.title(2))
 
     def add_fft_channel(self, source_chn:Channel, scale, window, span, centre, fft_size=2048):
         """ Inits an FFT channel from a source channel. """
@@ -355,6 +372,19 @@ class MainWindow(BaseWidget):
         self.ctrl_pane.ui.hoffset_sld.valueChanged.connect(
             lambda val: self.channels[new_chn_idx].set_hoffset(val))
 
+    def set_vscale_src(self):
+        """ Changes source channel for vertical scale controls """
+
+        new_chn_idx = 0
+        self.ctrl_pane.ui.vscale_dsld.snapped.disconnect()
+        self.ctrl_pane.ui.voffset_sld.valueChanged.disconnect()
+        self.ctrl_pane.ui.vscale_dsld.snapped.connect(
+            lambda val: self.ctrl_pane.ui.vscale_dlbl.update_unit(val))
+        self.ctrl_pane.ui.vscale_dsld.snapped.connect(
+            lambda val: self.channels[new_chn_idx].set_vscale(val))
+        self.ctrl_pane.ui.voffset_sld.valueChanged.connect(
+            lambda val: self.channels[new_chn_idx].set_voffset(val))
+
     def set_fft_vscale(self):
         new_vscale_idx = self.ctrl_pane.ui.fft_vscale_mbtn.state['index']
         fft_chn = next(chn for chn in self.channels if chn.name == 'FFT')
@@ -368,10 +398,5 @@ class MainWindow(BaseWidget):
         src_chn_name = self.ctrl_pane.ui.measure_src_cbox.currentText()
         src_chn = next(chn for chn in self.channels if chn.name == src_chn_name)
         meas_type = self.ctrl_pane.ui.measure_type_cbox.currentText()
-        measurement = Measurement()
-        measurement.init(src_chn, meas_type)
-        self.measurements.append(measurement)
-        self.stat_bar.ui.meas_1_dlbl.dynamic_texts = [
-            src_chn.title(0), meas_type, 0, 'm', 'V']
-        measurement.meas_ready.connect(
-            lambda val: self.stat_bar.ui.meas_1_dlbl.update_unit(val))
+        dynamic_texts = [src_chn.title(0), meas_type, 0, 'm', 'V']
+        self.stat_bar.add_measurement(src_chn, meas_type, dynamic_texts, )

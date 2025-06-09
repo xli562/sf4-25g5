@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>890</width>
-    <height>48</height>
+    <width>888</width>
+    <height>44</height>
    </rect>
   </property>
   <property name="font">
@@ -27,7 +27,7 @@
     <rect>
      <x>10</x>
      <y>5</y>
-     <width>101</width>
+     <width>91</width>
      <height>40</height>
     </rect>
    </property>
@@ -47,9 +47,9 @@
   <widget class="MultButton" name="fft_mbtn">
    <property name="geometry">
     <rect>
-     <x>130</x>
+     <x>110</x>
      <y>5</y>
-     <width>101</width>
+     <width>91</width>
      <height>40</height>
     </rect>
    </property>
@@ -61,9 +61,9 @@ Channel 1</string>
   <widget class="DynamicLabel" name="meas_2_dlbl">
    <property name="geometry">
     <rect>
-     <x>470</x>
+     <x>370</x>
      <y>0</y>
-     <width>121</width>
+     <width>151</width>
      <height>51</height>
     </rect>
    </property>
@@ -74,9 +74,9 @@ Channel 1</string>
   <widget class="DynamicLabel" name="meas_3_dlbl">
    <property name="geometry">
     <rect>
-     <x>600</x>
+     <x>530</x>
      <y>0</y>
-     <width>141</width>
+     <width>151</width>
      <height>51</height>
     </rect>
    </property>
@@ -88,9 +88,9 @@ max = -25 dB</string>
   <widget class="DynamicLabel" name="meas_1_dlbl">
    <property name="geometry">
     <rect>
-     <x>340</x>
+     <x>210</x>
      <y>0</y>
-     <width>121</width>
+     <width>151</width>
      <height>51</height>
     </rect>
    </property>
@@ -102,9 +102,9 @@ Vrms = 2 V</string>
   <widget class="DynamicLabel" name="meas_4_dlbl">
    <property name="geometry">
     <rect>
-     <x>750</x>
+     <x>690</x>
      <y>0</y>
-     <width>91</width>
+     <width>151</width>
      <height>51</height>
     </rect>
    </property>

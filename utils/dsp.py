@@ -35,7 +35,9 @@ class Channel(QObject):
         self.trig_threshold = 0.0
         self.pretrg = 0.3
         self._len = 10
-        self._offset_percent = 0
+        self._hoffset_percent = 0
+        self.vscale = 1
+        self._voffset_absolute = 0
         self.frame_buffer = np.zeros((2, self._len))
         # frame buffer pointer points to the earliest filled
         # location in frame_buffer[1] (buffer
@@ -86,10 +88,20 @@ class Channel(QObject):
         self._post_len   = self._len - int(self._len * self.pretrg)
         self._lookahead  = deque(maxlen=int(self._len*2 + self._post_len))
 
-    def set_hoffset(self, offset_percent):
+    def set_hoffset(self, hoffset_percent):
         """ Sets horizontal offset (+/- 5%) """
 
-        self._offset_percent = offset_percent / 100 * 5
+        self._hoffset_percent = hoffset_percent / 100 * 5
+
+    def set_vscale(self, new_vscale):
+        """ Sets vertical axis scaling factor """
+
+        self.vscale = new_vscale
+
+    def set_voffset(self, voffset_absolute):
+        """ Sets vertical offset by absolute value """
+
+        self._voffset_absolute = voffset_absolute
 
     def set_trig_mode(self, new_trig_mode_idx:int):
         """ Set trig mode to corresponding QPushButton in
@@ -249,7 +261,7 @@ class Channel(QObject):
                 if edge_abs + self._post_len <= len(full):
                     idx_rel = cand                       # accept
 
-        offset = -int(self._offset_percent * self._len / 100)
+        offset = -int(self._hoffset_percent * self._len / 100)
         if idx_rel is None:
             # If still no edge found, run with no trigger
             # No offset allowed with no trigger
@@ -272,7 +284,9 @@ class Channel(QObject):
             if overlap > 0:                                # only if data exists
                 dst_lo = max(0, -start_idx)
                 fragment[dst_lo:dst_lo + overlap] = full[src_lo:src_hi]
-
+        
+        # apply scaling and offset element-wise
+        fragment = fragment * self.vscale + self._voffset_absolute
         # 6.  Ship the frame
         self.frame_buffer[0] = fragment                  # front buffer
         self.frame_ready.emit(fragment)
