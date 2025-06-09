@@ -42,13 +42,12 @@ class ControlPane(BaseWidget):
         self.init_mbtns()
         self.init_cboxes()
         self.init_dslds()
-        self.init_slds()
         self.init_btngrps()
 
     def init_dlbls(self):
         """ Inits the DynamicLabels """
 
-        self.ui.hscale_dlbl.init(['5', 'm'], '{} {}s / div')
+        self.ui.hscale_dlbl.init(['500', 'u'], '{} {}s / div')
         self.ui.vscale_dlbl.init(['500', 'm'], '{} {}V / div')
 
     def init_sboxes(self):
@@ -102,18 +101,8 @@ class ControlPane(BaseWidget):
         """ Inits the DiscreteSliders """
 
         # TODO: cover all dslds
-        self.ui.hscale_dsld.set_levels([0.005, 0.1, 1])
+        self.ui.hscale_dsld.set_levels([0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05])
         self.ui.vscale_dsld.set_levels([0.5, 1, 5])
-        
-
-    def init_slds(self):
-        """ Inits the QSliders """
-
-        # TODO: cover all slds
-        self.ui.hoffset_sld.setRange(-180, 179)
-        self.ui.hoffset_sld.setValue(0)
-        self.ui.trig_pretrg_sld.setRange(0,100)
-        self.ui.trig_pretrg_sld.setValue(50)
 
     def init_btngrps(self):
         """ Init button groups """
@@ -263,6 +252,7 @@ class MainWindow(BaseWidget):
         # Init channel 1 by default
         self.add_simple_channel('Channel 1', self.arduino.serial_data)
         self.set_trig_src()
+        self.set_hscale_src()
 
         # Default not show FFT
         self.add_fft_channel(self.channels[0], Channel.DBV, Channel.HAMMING,
@@ -277,6 +267,7 @@ class MainWindow(BaseWidget):
             lambda: self.toggle_channel_visibility(0, self.stat_bar.ui.ch1_mbtn.state['index']))
         self.stat_bar.ui.fft_mbtn.clicked.connect(
             lambda: self.toggle_channel_visibility(1, self.stat_bar.ui.fft_mbtn.state['index']))
+
 
     def toggle_channel_visibility(self, chn_idx:int, on_off:bool):
         """ Show / hides its line """
@@ -301,6 +292,7 @@ class MainWindow(BaseWidget):
         chns_count = len(self.channels)
         chn = Channel()
         chn.name = chn_name
+        chn.set_sampling_period(Arduino.SAMPLING_PERIOD)
         if chn_name == 'Channel 1':
             chn.color = np.array([236, 252, 32, 180])
         elif chn_name == 'Channel 2':
@@ -348,6 +340,20 @@ class MainWindow(BaseWidget):
             lambda val: self.channels[new_chn_idx].set_trig_threshold_percentage(val))
         self.ctrl_pane.ui.trig_pretrg_sbox.valueChanged.connect(
             lambda val: self.channels[new_chn_idx].set_pretrg(val))
+        
+    def set_hscale_src(self):
+        """ Changes source channel for timescale controls """
+
+        new_chn_idx = 0
+        new_chn_sampling_period = self.channels[new_chn_idx].sampling_period
+        self.ctrl_pane.ui.hscale_dsld.snapped.disconnect()
+        self.ctrl_pane.ui.hoffset_sld.valueChanged.disconnect()
+        self.ctrl_pane.ui.hscale_dsld.snapped.connect(
+            lambda val: self.ctrl_pane.ui.hscale_dlbl.update_unit(val))
+        self.ctrl_pane.ui.hscale_dsld.snapped.connect(
+            lambda val: self.channels[new_chn_idx].set_length(int(val / new_chn_sampling_period)))
+        self.ctrl_pane.ui.hoffset_sld.valueChanged.connect(
+            lambda val: self.channels[new_chn_idx].set_hoffset(val))
 
     def set_fft_vscale(self):
         new_vscale_idx = self.ctrl_pane.ui.fft_vscale_mbtn.state['index']

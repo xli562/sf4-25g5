@@ -35,6 +35,7 @@ class Channel(QObject):
         self.trig_threshold = 0.0
         self.pretrg = 0.3
         self._len = 10
+        self._offset_percent = 0
         self.frame_buffer = np.zeros((2, self._len))
         # frame buffer pointer points to the earliest filled
         # location in frame_buffer[1] (buffer
@@ -43,10 +44,10 @@ class Channel(QObject):
         # buffer full : self.frame_buffer_ptr = 0
         self._frame_buffer_ptr = self._len
         self._post_len   = self._len - int(self._len * self.pretrg)
-        self._lookahead  = deque(maxlen=self._len + self._post_len)
+        self._lookahead  = deque(maxlen=int(self._len*2 + self._post_len))
         # FFT-specific state
-        self.is_fft      = False          # False = normal time-domain
-        self._t_s           = 1.0            # sampling period (s) – user sets
+        self.is_fft          = False
+        self.sampling_period = 1.0
 
     def __str__(self):
         retstr  = f'{self.name}:'
@@ -83,7 +84,12 @@ class Channel(QObject):
         self.frame_buffer = np.zeros((2, self._len))
         self._frame_buffer_ptr = self._len
         self._post_len   = self._len - int(self._len * self.pretrg)
-        self._lookahead  = deque(maxlen=self._len + self._post_len)
+        self._lookahead  = deque(maxlen=int(self._len*2 + self._post_len))
+
+    def set_hoffset(self, offset_percent):
+        """ Sets horizontal offset (+/- 5%) """
+
+        self._offset_percent = offset_percent / 100 * 5
 
     def set_trig_mode(self, new_trig_mode_idx:int):
         """ Set trig mode to corresponding QPushButton in
@@ -96,7 +102,7 @@ class Channel(QObject):
     def set_pretrg(self, new_pretrg):
         self.pretrg = new_pretrg
         self._post_len   = self._len - int(self._len * self.pretrg)
-        self._lookahead  = deque(maxlen=self._len + self._post_len)
+        self._lookahead  = deque(maxlen=int(self._len*2 + self._post_len))
 
     def set_trig_threshold_percentage(self, new_threshold_percentage):
         # TODO: new_threshold_percentage should be percentage of channel's
@@ -107,7 +113,7 @@ class Channel(QObject):
         """Set ADC sampling interval in seconds (constant for all channels)."""
         if new_t_s <= 0:
             logger.debug(f'Sampling period must be > 0, got {new_t_s}')
-        self._t_s = new_t_s
+        self.sampling_period = new_t_s
 
     def init_source(self, src:SignalInstance):
         """ Connects serial input signal to channel """
@@ -171,7 +177,7 @@ class Channel(QObject):
         self._fft_buf    = deque(maxlen=self._fft_size)   # reset buffer
 
         # -------- pre-compute helpers -------
-        self._bins = np.fft.rfftfreq(self._fft_size, d=self._t_s)       # Hz
+        self._bins = np.fft.rfftfreq(self._fft_size, d=self.sampling_period)       # Hz
         self.fft_window  = self._make_window(self._fft_size, window)   # 1-D
 
         # determine indices for the requested span/center
@@ -243,19 +249,33 @@ class Channel(QObject):
                 if edge_abs + self._post_len <= len(full):
                     idx_rel = cand                       # accept
 
-        # 5.  If still no edge → free-run (never freezes)
+        offset = -int(self._offset_percent * self._len / 100)
         if idx_rel is None:
-            fragment = full[-self._len:]                 # last 500 samples
-            triggered = False
+            # If still no edge found, run with no trigger
+            # No offset allowed with no trigger
+            base_start_idx = len(full) - self._len
+            start_idx = base_start_idx
         else:
-            start     = idx_rel                          # edge at x = s0
-            fragment  = full[start:start + self._len]
-            triggered = True
+            # Triggered
+            base_start_idx = idx_rel
+            start_idx = base_start_idx + offset
+
+        end_idx = start_idx + self._len
+
+        if 0 <= start_idx and end_idx <= len(full):
+            fragment = full[start_idx:end_idx]                 # last 500 samples
+        else:
+            fragment = np.zeros(self._len, dtype=full.dtype)
+            src_lo = max(start_idx, 0)
+            src_hi = min(end_idx, len(full))
+            overlap = src_hi - src_lo
+            if overlap > 0:                                # only if data exists
+                dst_lo = max(0, -start_idx)
+                fragment[dst_lo:dst_lo + overlap] = full[src_lo:src_hi]
 
         # 6.  Ship the frame
         self.frame_buffer[0] = fragment                  # front buffer
         self.frame_ready.emit(fragment)
-        # print('frame ready', end='')
 
         # 7.  Keep the *last* (len + post_len) samples for next search
         #     (= drop exactly the len samples we just plotted)

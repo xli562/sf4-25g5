@@ -7,9 +7,9 @@ PySide6 quick guides:
 - [plotting](https://www.pythonguis.com/tutorials/pyside6-plotting-pyqtgraph/)
 - [combobox](https://www.pythonguis.com/docs/qcombobox/)
 
-1. enable zeroing offset signals
-1. Time-domain signal timescale & offset, voltage scale & offset
+1. Time-domain signal voltage scale & offset
 1. Add measurement & remove measurement (click mouse midkey).
+1. Remove axis scales, display fixed square grid (as per 'div')
 1. (optional) If GUI too slow, replace some lists with np.array
 
 1. Make channel 2

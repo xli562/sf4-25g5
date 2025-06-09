@@ -12,8 +12,9 @@ class Arduino(QThread):
     Continuously generates random float arrays and feeds them into
     the provided Channel instance via stream_in().
     """
-    BAUD_RATE = 250000 
-
+    BAUD_RATE = 250000
+    SAMPLING_PERIOD = 1 / 38_500
+    DEMO = True
     serial_data = Signal(np.ndarray)
 
     def __init__(self, parent=None):
@@ -26,13 +27,16 @@ class Arduino(QThread):
         self.is_running = True
 
     def run(self):
-        """Thread entry point: generate random chunks at random intervals."""
-        self.connect_serial()
-        self.generate_demo_data()
-        # self.read_serial()
+        """ Thread entry point """
+
+        if self.DEMO:
+            self.generate_demo_data()
+        else:
+            self.connect_serial()
+            self.read_serial()
 
     def stop(self):
-        """Stop the simulator thread on next loop iteration."""
+        """ Stop sending data on next loop iteration """
         self.is_running = False
 
     def generate_demo_data(self):
@@ -42,9 +46,9 @@ class Arduino(QThread):
             interval = random.uniform(0.00005, 0.0005)
             time.sleep(interval)
             chunk_size = random.randint(1, 5)
-            # data = [np.sin(t/20) for t in np.arange(x, x + chunk_size)]
+            data = [np.sin(t/20) for t in np.arange(x, x + chunk_size)]
             # data = [0.1*t*np.sin(t/20) for t in np.arange(x, x + chunk_size)]
-            data = [np.sin(t) + np.sin(t/20) for t in np.arange(x, x + chunk_size)]
+            # data = [np.sin(t) + np.sin(t/20) for t in np.arange(x, x + chunk_size)]
             self.serial_data.emit(data)
             # logger.debug(data)
             x += chunk_size
