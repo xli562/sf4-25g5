@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QWidget, QComboBox, QGraphicsView, QButtonGroup, QDoubleSpinBox
+from PySide6.QtWidgets import QWidget, QButtonGroup
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QFile, QTimer, SignalInstance
+from PySide6.QtCore import QFile, SignalInstance
 from utils.components import MultButton, DiscreteSlider, DynamicLabel
 from utils.dsp import Channel, Measurement
 from utils.comms import Arduino
@@ -142,6 +142,10 @@ class ControlPane(BaseWidget):
             lambda val: self.ui.trig_pretrg_sbox.setValue(round(val/100, 2)))
         self.ui.trig_pretrg_sbox.valueChanged.connect(
             lambda val: self.ui.trig_pretrg_sld.setValue(int(val*100)))
+        self.ui.h_offset_zero_btn.clicked.connect(
+            lambda: self.ui.hoffset_sld.setValue(0))
+        self.ui.v_offset_zero_btn.clicked.connect(
+            lambda: self.ui.voffset_sld.setValue(0))
 
 class WaveCanvas(pg.PlotWidget):
     def __init__(self, parent=None):
@@ -257,7 +261,7 @@ class MainWindow(BaseWidget):
         self.arduino = Arduino()
         self.arduino.start()
         # Init channel 1 by default
-        self.add_simple_channel('Channel 1', self.arduino.chn_1_demo_serial_input)
+        self.add_simple_channel('Channel 1', self.arduino.serial_data)
         self.set_trig_src()
 
         # Default not show FFT

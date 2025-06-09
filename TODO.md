@@ -7,7 +7,6 @@ PySide6 quick guides:
 - [plotting](https://www.pythonguis.com/tutorials/pyside6-plotting-pyqtgraph/)
 - [combobox](https://www.pythonguis.com/docs/qcombobox/)
 
-1. Switch channels on and off with status bar buttons
 1. enable zeroing offset signals
 1. Time-domain signal timescale & offset, voltage scale & offset
 1. Add measurement & remove measurement (click mouse midkey).
