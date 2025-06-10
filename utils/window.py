@@ -141,6 +141,7 @@ class WaveCanvas(pg.PlotWidget):
         super().__init__(parent)
         self.name = 'wave_pane'
         self.lines:list[pg.PlotDataItem] = []
+        self.x_axes:list[np.ndarray] = []
         self.fft_view:pg.ViewBox = None
         self.init_ui()
 
@@ -155,15 +156,29 @@ class WaveCanvas(pg.PlotWidget):
         pen = pg.mkPen(color=chn.color, width=3)
         if not chn.is_fft:
             line = self.plot(np.arange(len(chn)), np.zeros(len(chn)), pen=pen)
+            self.x_axes.append(None)
         else:
             if self.fft_view is None:
-                self.add_viewbox()
-            line = pg.PlotDataItem(np.arange(len(chn)), np.zeros(len(chn)), pen=pen)
-            self.fft_view.addItem(line)
+                self._create_second_view()
+            line = pg.PlotDataItem(
+                chn.get_fft_bins(),               # ➍ true-frequency abscissa
+                np.zeros(len(chn)), pen=pen
+            )
+            self._fft_view.addItem(line)
+            self.x_axes.append(chn.get_fft_bins())  # cached, never changes
         self.lines.append(line)
 
     def update(self, line_idx:int, data:np.ndarray):
-        self.lines[line_idx].setData(np.arange(len(data)), data)
+        """Redraw one curve.  For FFT we already know the X-array.
+        For time traces we rebuild it because `len(data)` can change
+        when you tweak time-base settings."""
+        if line_idx >= len(self.lines):
+            return
+
+        x = self.x_axes[line_idx]
+        if x is None:                             # time-domain
+            x = np.arange(len(data))
+        self.lines[line_idx].setData(x, data)
 
     def add_viewbox(self):
         pi = self.getPlotItem()
@@ -182,6 +197,25 @@ class WaveCanvas(pg.PlotWidget):
         pi.vb.sigResized.connect(update_views)
         update_views()
 
+    def _create_second_view(self):
+        """ Overlay an independent ViewBox + right-hand Y-axis for the FFT. """
+
+        pi = self.getPlotItem()
+        self._fft_view = pg.ViewBox()
+        pi.scene().addItem(self._fft_view)
+
+        # right-hand axis for magnitude
+        pi.showAxis('right')
+        right_axis = pi.getAxis('right')
+        right_axis.linkToView(self._fft_view)
+        right_axis.setPen(pg.mkPen('w'))
+
+        # keep geometries identical so the two ViewBoxes overlap perfectly
+        def _sync():
+            self._fft_view.setGeometry(pi.vb.sceneBoundingRect())
+        pi.vb.sigResized.connect(_sync)
+        _sync()
+
 class StatusBar(BaseWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -196,11 +230,11 @@ class StatusBar(BaseWidget):
 
     def init_dlbls(self):
         """ Inits the DynamicLabels """
-        
-        self.ui.meas_1_dlbl.init(['Ch_', '_', '2', 'm', 'V'], '{}\n{} = {} {}{}', 2, 3)
-        self.ui.meas_2_dlbl.init(['Ch_', '_', '2', 'm', 'V'], '{}\n{} = {} {}{}', 2, 3)
-        self.ui.meas_3_dlbl.init(['Ch_', '_', '2', 'm', 'V'], '{}\n{} = {} {}{}', 2, 3)
-        self.ui.meas_4_dlbl.init(['Ch_', '_', '2', 'm', 'V'], '{}\n{} = {} {}{}', 2, 3)
+
+        self.ui.meas_1_dlbl.init(['', '', '', '', ''], '{}\n{} = {} {}{}', 2, 3)
+        self.ui.meas_2_dlbl.init(['', '', '', '', ''], '{}\n{} = {} {}{}', 2, 3)
+        self.ui.meas_3_dlbl.init(['', '', '', '', ''], '{}\n{} = {} {}{}', 2, 3)
+        self.ui.meas_4_dlbl.init(['', '', '', '', ''], '{}\n{} = {} {}{}', 2, 3)
         self.dlbls:list[DynamicLabel] = [self.ui.meas_1_dlbl,
                                          self.ui.meas_2_dlbl,
                                          self.ui.meas_3_dlbl,
@@ -243,7 +277,6 @@ class MainWindow(BaseWidget):
     """ All subsystems are connected together in the main window. """
 
     DEFAULT_SIMPLE_CHANNEL_LENGTH          = 500
-    DEFAULT_SIMPLE_CHANNEL_SAMPLING_PERIOD = 1/50_000
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -336,6 +369,8 @@ class MainWindow(BaseWidget):
             lambda val: self.wave_pane.update(chns_count, val))
         chn.init_source(source_chn.source)
         self.channels.append(chn)
+        self.ctrl_pane.ui.measure_src_cbox.addItem('FFT')
+        self.ctrl_pane.ui.measure_type_cbox.addItem(Measurement.ARGMAX)
 
     def set_trig_src(self):
         """ Changes source channel for trigger control """
@@ -363,6 +398,8 @@ class MainWindow(BaseWidget):
 
         new_chn_idx = 0
         new_chn_sampling_period = self.channels[new_chn_idx].sampling_period
+        self.channels[new_chn_idx].set_length(
+            int(self.ctrl_pane.ui.hscale_dsld.level / new_chn_sampling_period))
         self.ctrl_pane.ui.hscale_dsld.snapped.disconnect()
         self.ctrl_pane.ui.hoffset_sld.valueChanged.disconnect()
         self.ctrl_pane.ui.hscale_dsld.snapped.connect(
@@ -397,6 +434,10 @@ class MainWindow(BaseWidget):
     def add_measurement(self):
         src_chn_name = self.ctrl_pane.ui.measure_src_cbox.currentText()
         src_chn = next(chn for chn in self.channels if chn.name == src_chn_name)
-        meas_type = self.ctrl_pane.ui.measure_type_cbox.currentText()
-        dynamic_texts = [src_chn.title(0), meas_type, 0, 'm', 'V']
-        self.stat_bar.add_measurement(src_chn, meas_type, dynamic_texts, )
+        if src_chn.is_fft:
+            meas_type = Measurement.ARGMAX
+            dynamic_texts = ['FFT', meas_type, 0, 'k', 'Hz']
+        else:
+            meas_type = self.ctrl_pane.ui.measure_type_cbox.currentText()
+            dynamic_texts = [src_chn.title(0), meas_type, 0, 'm', 'V']
+        self.stat_bar.add_measurement(src_chn, meas_type, dynamic_texts)

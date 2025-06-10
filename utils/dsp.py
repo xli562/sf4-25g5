@@ -50,6 +50,7 @@ class Channel(QObject):
         # FFT-specific state
         self.is_fft          = False
         self.sampling_period = 1.0
+        self.fft_peak_freq = 0
 
     def __str__(self):
         retstr  = f'{self.name}:'
@@ -321,9 +322,20 @@ class Channel(QObject):
         # limit to requested span
         frame = y[self._idx_span]
 
+        self.fft_peak_freq = self._bins[self._idx_span][int(np.argmax(frame))]#*6282.208589
+
         # ----- hand frame to GUI ------------------------------------------
         self.frame_buffer[0] = frame
         self.frame_ready.emit(frame)
+        logger.debug(self.fft_peak_freq)
+
+    def get_fft_bins(self) -> np.ndarray:
+        """Return the frequency (Hz) array that matches the emitted FFT
+        frames.  Only valid after `init_fft()`.
+        """
+        if not self.is_fft:
+            raise RuntimeError('Not an FFT channel')
+        return self._bins[self._idx_span]
 
 class Measurement(QObject):
     """ Represents a measurement of a channel """
@@ -332,6 +344,7 @@ class Measurement(QObject):
     MIN = 'Min'
     FREQ = 'freq'
     RMS = 'RMS'
+    ARGMAX = 'Max @'
     meas_ready = Signal(float)
 
     def __init__(self, parent=None):
@@ -363,4 +376,6 @@ class Measurement(QObject):
             self.val = np.min(data)
         elif self.type == self.RMS:
             self.val = round(float(np.sqrt(np.mean(data**2))), 4)
+        elif self.type == self.ARGMAX:
+            self.val = self.src.fft_peak_freq
         self.meas_ready.emit(self.val)

@@ -79,6 +79,7 @@ class DiscreteSlider(QSlider):
         """
 
         self.levels = levels
+        self.level = levels[0]
         self.step = round((self.maximum() - self.minimum()) / (len(self) - 1))
         self.setSingleStep(self.step)
 
@@ -95,7 +96,7 @@ class DiscreteSlider(QSlider):
             self.snapped.emit(self.level)
 
 class DynamicLabel(QLabel):
-    """ Label with update handle """
+    """ QLabel with update handle """
 
     def __init__(self, parent=None):
         super().__init__(parent)

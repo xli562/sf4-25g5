@@ -39,19 +39,35 @@ class Arduino(QThread):
         """ Stop sending data on next loop iteration """
         self.is_running = False
 
+    def send_command(self, command):
+        """ Sends command via serial.
+         
+        :param command: (list[int]) e.g. [1, 4] """
+
+        with serial.Serial(self.port, self.BAUD_RATE, timeout=2) as ser:
+            ser.write(f'{command[0]} {command[1]}'.encode('ascii') + b'\n')
+            logger.debug(f'Sent command over serial: {command[0]} {command[1]}')
+
     def generate_demo_data(self):
-        x = 0
+        x = 0.0
         while self.is_running:
-            # Sleep for a random interval between 5 and 50 ms
-            interval = random.uniform(0.00005, 0.0005)
-            time.sleep(interval)
-            chunk_size = random.randint(1, 5)
-            data = [np.sin(t/20) for t in np.arange(x, x + chunk_size)]
+            time.sleep(1/38500)         # Sampling freq
+            data = [np.sin(x/38500*1000)] # 1000 Hz
             # data = [0.1*t*np.sin(t/20) for t in np.arange(x, x + chunk_size)]
             # data = [np.sin(t) + np.sin(t/20) for t in np.arange(x, x + chunk_size)]
             self.serial_data.emit(data)
             # logger.debug(data)
-            x += chunk_size
+            x += 1
+            # # Sleep for a random interval between 5 and 50 ms
+            # interval = random.uniform(0.00005, 0.0005)
+            # time.sleep(interval)
+            # chunk_size = random.randint(1, 5)
+            # data = [np.sin(t/20) for t in np.arange(x, x + chunk_size)]
+            # # data = [0.1*t*np.sin(t/20) for t in np.arange(x, x + chunk_size)]
+            # # data = [np.sin(t) + np.sin(t/20) for t in np.arange(x, x + chunk_size)]
+            # self.serial_data.emit(data)
+            # # logger.debug(data)
+            # x += chunk_size
 
     def connect_serial(self):
         """ Attempts to connect to the Arduino """
